@@ -1,0 +1,29 @@
+databases:
+  - name: loja-papelaria-db
+    plan: free
+    databaseName: loja_papelaria
+    user: loja_papelaria
+
+services:
+  - type: web
+    name: loja-papelaria
+    runtime: docker
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_URL
+        fromDatabase:
+          name: loja-papelaria-db
+          property: connectionString
+      - key: DB_USERNAME
+        fromDatabase:
+          name: loja-papelaria-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: loja-papelaria-db
+          property: password
+      # Adicionar manualmente no dashboard do Render (nunca commitar no Git):
+      # STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY

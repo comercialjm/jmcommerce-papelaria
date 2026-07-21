@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: loja-papelaria-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: loja_papelaria
+      POSTGRES_USER: loja_papelaria
+      POSTGRES_PASSWORD: loja_papelaria
+    ports:
+      - "5432:5432"
+    volumes:
+      - loja-papelaria-data:/var/lib/postgresql/data
+
+volumes:
+  loja-papelaria-data:

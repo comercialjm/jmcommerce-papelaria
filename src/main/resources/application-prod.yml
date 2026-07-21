@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:8080} # o Render injeta a variável PORT automaticamente
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    show-sql: false
+  thymeleaf:
+    cache: true
+
+logging:
+  level:
+    com.jmcodestudio.papelaria: INFO

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: loja-papelaria
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate # o schema é sempre gerenciado pelo Flyway, nunca pelo Hibernate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
