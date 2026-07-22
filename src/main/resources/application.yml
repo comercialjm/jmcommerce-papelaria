@@ -2,7 +2,7 @@ spring:
   application:
     name: loja-papelaria
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    default: dev
   jpa:
     open-in-view: false
     hibernate:

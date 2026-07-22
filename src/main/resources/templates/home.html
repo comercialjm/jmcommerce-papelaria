@@ -1,14 +1,30 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loja de Papelaria</title>
-    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <title>Início</title>
 </head>
 <body>
-    <h1>Loja de Papelaria</h1>
-    <p>Projeto vitrine JM Code Studio &mdash; setup inicial funcionando.</p>
+<main layout:fragment="content">
+    <section class="container" style="padding: var(--espaco-7) 0;">
+        <span class="etiqueta">Base do frontend — M4 constrói o conteúdo completo</span>
+        <h1 style="margin-top: var(--espaco-3);">Papelaria, com caráter.</h1>
+        <p style="max-width: 480px; font-size: 1.05rem;">
+            Esta página confirma que o layout, os tokens de design e os fragmentos de
+            cabeçalho e rodapé estão funcionando. O conteúdo real da home (banner,
+            categorias, produtos em destaque) entra no próximo marco.
+        </p>
+
+        <div class="regua-ledger regua-ledger--estreita"></div>
+
+        <div style="display:flex; gap: var(--espaco-4); align-items:center; flex-wrap: wrap;">
+            <span class="selo selo--novo">NOVO</span>
+            <span class="preco">R$ 39,90</span>
+            <button class="botao botao-primario">Adicionar ao carrinho</button>
+            <button class="botao botao-secundario">Ver detalhes</button>
+        </div>
+    </section>
+</main>
 </body>
 </html>

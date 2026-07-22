@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header th:fragment="header" class="cabecalho">
+    <div class="container cabecalho__conteudo">
+        <button class="cabecalho__menu-mobile" aria-label="Abrir menu" aria-controls="menu-mobile" aria-expanded="false">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
+
+        <a href="/" class="cabecalho__logo">
+            <!-- TODO (M8): substituir por th:text a partir de configuracao_loja.nome_loja -->
+            Loja de Papelaria
+        </a>
+
+        <nav class="cabecalho__nav" aria-label="Navegação principal">
+            <a href="/produtos">Produtos</a>
+            <!-- TODO (M4): categorias carregadas dinamicamente via /api/categorias -->
+        </nav>
+
+        <div class="cabecalho__acoes">
+            <a href="/produtos" class="cabecalho__acao-icone" aria-label="Buscar produtos">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </a>
+            <a href="/carrinho" class="cabecalho__acao-icone" aria-label="Ver carrinho">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span id="contador-carrinho" class="cabecalho__contador-carrinho" hidden>0</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+</body>
+</html>

@@ -79,6 +79,32 @@ com.jmcodestudio.papelaria
   quebrar o modelo atual.
 - Rodapé "Desenvolvido por JM Code Studio" é fixo no código, não editável pelo admin.
 
+## Frontend — bases (Thymeleaf + HTMX)
+
+- **Layout**: `templates/layout/main.html` é o template mestre (Thymeleaf Layout Dialect). Toda página nova
+  deve usar `layout:decorate="~{layout/main}"` e colocar seu conteúdo em `layout:fragment="content"` — veja
+  `templates/home.html` como exemplo mínimo.
+- **Fragmentos**: `templates/fragments/header.html` e `footer.html` são incluídos automaticamente pelo
+  layout. Não duplique cabeçalho/rodapé em outras páginas.
+- **Tokens de design**: `static/css/tokens.css` define cores, tipografia e espaçamento nomeados por
+  material (verde-ledger, kraft, tinta, etc.) — direção visual aprovada em 22/07/2026, inspirada no universo
+  de livro-caixa e papel kraft. Nunca use valores de cor/fonte "soltos" no CSS; sempre referencie uma
+  variável de `tokens.css`.
+- **Elementos-assinatura**: classes `.regua-ledger` (divisor de seção) e `.selo` (badge circular tipo
+  carimbo) são o fio condutor visual do site. Reutilize-os em vez de criar novos estilos de divisor/badge.
+- **HTMX**: carregado via CDN no layout. Fragmentos parciais (ex: recalcular carrinho sem reload) serão
+  implementados a partir do M5.
+- **Carrinho**: `static/js/main.js` já lê o `localStorage` para atualizar o contador no ícone do header
+  (RN-09). A lógica completa de adicionar/remover itens entra no M5.
+
+
+
+**Deploy falha com `URL must start with 'jdbc'`**: o Render expõe a conexão do Postgres via `connectionString`
+no formato `postgres://user:senha@host:porta/banco`, que não é aceito pelo HikariCP/Spring (exige
+`jdbc:postgresql://...`). A correção já está aplicada: usamos as propriedades separadas (`host`, `port`,
+`database`, `user`, `password`) do banco no `render.yaml` e montamos a URL JDBC manualmente em
+`application-prod.yml`. Se você recriar o `render.yaml` do zero, lembre-se dessa pegadinha.
+
 ## Próximos marcos
 
 Ver `docs/use-cases-v2.md`, seção "Marcos Atualizados", para o roadmap completo (M3 em diante).
