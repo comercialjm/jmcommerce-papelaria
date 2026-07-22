@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <title th:text="${produto.nome}">Produto</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <section class="container" style="padding: var(--espaco-6) 0;">
+
+        <a th:href="@{/produtos(categoriaId=${produto.categoriaId})}" class="etiqueta" style="display:inline-block; margin-bottom: var(--espaco-5);">
+            &larr; <span th:text="${produto.categoriaNome}">Categoria</span>
+        </a>
+
+        <div class="produto-grid">
+
+            <!-- Galeria (RN-03: 1 a 5 imagens, miniaturas navegáveis) -->
+            <div>
+                <div class="galeria-produto__principal">
+                    <img id="imagem-principal"
+                         th:if="${!produto.imagens.isEmpty()}"
+                         th:src="${produto.imagens[0]}"
+                         th:alt="${produto.nome}">
+                </div>
+                <div class="galeria-produto__miniaturas" th:if="${produto.imagens.size() > 1}">
+                    <button th:each="img, iter : ${produto.imagens}"
+                            type="button"
+                            class="galeria-produto__miniatura"
+                            th:classappend="${iter.index == 0} ? 'galeria-produto__miniatura--ativa' : ''"
+                            th:attr="data-imagem-url=${img}"
+                            onclick="trocarImagemPrincipal(this)">
+                        <img th:src="${img}" th:alt="${produto.nome} + ' - imagem ' + ${iter.count}">
+                    </button>
+                </div>
+            </div>
+
+            <!-- Informações do produto -->
+            <div>
+                <h1 th:text="${produto.nome}">Nome do produto</h1>
+
+                <span th:if="${!produto.esgotado}" class="disponibilidade disponibilidade--estoque">Em estoque</span>
+                <span th:if="${produto.esgotado}" class="disponibilidade disponibilidade--esgotado">Esgotado</span>
+
+                <div class="preco" style="font-size:1.4rem; margin-bottom: var(--espaco-4);"
+                     th:text="'R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}">
+                    R$ 0,00
+                </div>
+
+                <p th:text="${produto.descricao}">Descrição do produto.</p>
+
+                <div class="regua-ledger regua-ledger--estreita"></div>
+
+                <!-- UC-03, RN-04: quantidade máxima = estoque disponível -->
+                <div th:if="${!produto.esgotado}" style="display:flex; align-items:center; gap: var(--espaco-4); margin-bottom: var(--espaco-4);">
+                    <span class="etiqueta">Quantidade</span>
+                    <div class="seletor-quantidade">
+                        <button type="button" onclick="ajustarQuantidade(-1)">&minus;</button>
+                        <input type="number" id="quantidade" value="1" min="1" th:max="${produto.estoque}" readonly>
+                        <button type="button" onclick="ajustarQuantidade(1)">+</button>
+                    </div>
+                </div>
+
+                <button class="botao botao-primario" th:disabled="${produto.esgotado}" style="width:100%; max-width:320px;">
+                    <span th:text="${produto.esgotado} ? 'Produto Esgotado' : 'Adicionar ao Carrinho'">Adicionar ao Carrinho</span>
+                </button>
+                <!-- TODO (M5): lógica real de adicionar ao carrinho (localStorage) -->
+            </div>
+
+        </div>
+    </section>
+
+    <script th:inline="javascript">
+        const ESTOQUE_MAXIMO = /*[[${produto.estoque}]]*/ 0;
+
+        function ajustarQuantidade(delta) {
+            const input = document.getElementById('quantidade');
+            const novoValor = parseInt(input.value, 10) + delta;
+            if (novoValor >= 1 && novoValor <= ESTOQUE_MAXIMO) {
+                input.value = novoValor;
+            }
+        }
+
+        function trocarImagemPrincipal(botao) {
+            document.getElementById('imagem-principal').src = botao.dataset.imagemUrl;
+            document.querySelectorAll('.galeria-produto__miniatura').forEach(el =>
+                el.classList.remove('galeria-produto__miniatura--ativa'));
+            botao.classList.add('galeria-produto__miniatura--ativa');
+        }
+    </script>
+</main>
+</body>
+</html>

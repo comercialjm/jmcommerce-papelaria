@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <title>Página não encontrada</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <section class="container" style="padding: var(--espaco-8) 0; text-align:center;">
+        <span class="etiqueta">Erro 404</span>
+        <h1>Esta página não existe.</h1>
+        <p style="max-width:420px; margin:0 auto var(--espaco-5);">
+            O produto ou a página que você procura pode ter sido removido ou o endereço está incorreto.
+        </p>
+        <a href="/produtos" class="botao botao-primario">Ver todos os produtos</a>
+    </section>
+</main>
+</body>
+</html>

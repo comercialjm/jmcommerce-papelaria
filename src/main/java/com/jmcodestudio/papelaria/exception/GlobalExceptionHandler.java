@@ -12,7 +12,13 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+/**
+ * Tratamento de erro exclusivo dos controllers REST (pacote controller.api).
+ * Os controllers de páginas públicas (Thymeleaf) não passam por aqui — eles usam
+ * a resolução padrão de erro do Spring Boot (templates/error/404.html, etc.),
+ * configurada via @ResponseStatus nas próprias exceções.
+ */
+@RestControllerAdvice(basePackages = "com.jmcodestudio.papelaria.controller.api")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
