@@ -1,9 +1,14 @@
-// Base do frontend público — contador do carrinho (RN-09: carrinho em localStorage)
-// e alternância do menu mobile. A lógica completa do carrinho (adicionar, remover,
-// validar com o backend) chega no M5 — aqui só garantimos que o ícone no header
-// já reflete o que estiver salvo no navegador.
+// Base do frontend público — carrinho (RN-09: localStorage), contador no header,
+// toast de feedback e menu mobile. Compartilhado por todas as páginas via layout.
 
 const CHAVE_CARRINHO = 'carrinho';
+
+/**
+ * Formato de cada item salvo: { produtoId, quantidade, precoSnapshot }.
+ * RN-10: o snapshot de preço é só um registro histórico do momento da adição —
+ * a página do carrinho NUNCA confia nele para exibir valores (RN-14). Quem
+ * decide o preço e o estoque de verdade é sempre o backend.
+ */
 
 function lerCarrinho() {
     try {
@@ -12,6 +17,25 @@ function lerCarrinho() {
     } catch {
         return [];
     }
+}
+
+function salvarCarrinho(itens) {
+    localStorage.setItem(CHAVE_CARRINHO, JSON.stringify(itens));
+    atualizarContadorCarrinho();
+}
+
+/** UC-05: adiciona um produto ao carrinho (soma quantidade se já existir — 3a). */
+function adicionarAoCarrinho(produtoId, quantidade, precoSnapshot) {
+    const itens = lerCarrinho();
+    const existente = itens.find(i => i.produtoId === produtoId);
+
+    if (existente) {
+        existente.quantidade += quantidade;
+    } else {
+        itens.push({ produtoId, quantidade, precoSnapshot });
+    }
+
+    salvarCarrinho(itens);
 }
 
 function atualizarContadorCarrinho() {
@@ -26,6 +50,25 @@ function atualizarContadorCarrinho() {
     } else {
         badge.hidden = true;
     }
+}
+
+/** UC-05, passo 4: feedback visual de "produto adicionado". */
+function mostrarToast(mensagem) {
+    let toast = document.getElementById('toast-global');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-global';
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = mensagem;
+    toast.classList.add('toast--visivel');
+
+    clearTimeout(toast._timeoutId);
+    toast._timeoutId = setTimeout(() => {
+        toast.classList.remove('toast--visivel');
+    }, 2500);
 }
 
 function configurarMenuMobile() {

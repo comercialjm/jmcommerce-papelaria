@@ -61,10 +61,11 @@
                     </div>
                 </div>
 
-                <button class="botao botao-primario" th:disabled="${produto.esgotado}" style="width:100%; max-width:320px;">
+                <button class="botao botao-primario" th:disabled="${produto.esgotado}" style="width:100%; max-width:320px;"
+                        th:attr="data-produto-id=${produto.id}, data-preco=${produto.preco}"
+                        onclick="handleAdicionarAoCarrinho(this)">
                     <span th:text="${produto.esgotado} ? 'Produto Esgotado' : 'Adicionar ao Carrinho'">Adicionar ao Carrinho</span>
                 </button>
-                <!-- TODO (M5): lógica real de adicionar ao carrinho (localStorage) -->
             </div>
 
         </div>
@@ -86,6 +87,17 @@
             document.querySelectorAll('.galeria-produto__miniatura').forEach(el =>
                 el.classList.remove('galeria-produto__miniatura--ativa'));
             botao.classList.add('galeria-produto__miniatura--ativa');
+        }
+
+        // UC-05: adiciona ao carrinho (localStorage) usando as funções de main.js
+        function handleAdicionarAoCarrinho(botao) {
+            const produtoId = parseInt(botao.dataset.produtoId, 10);
+            const preco = parseFloat(botao.dataset.preco);
+            const quantidadeInput = document.getElementById('quantidade');
+            const quantidade = quantidadeInput ? parseInt(quantidadeInput.value, 10) : 1;
+
+            adicionarAoCarrinho(produtoId, quantidade, preco);
+            mostrarToast('Produto adicionado ao carrinho!');
         }
     </script>
 </main>

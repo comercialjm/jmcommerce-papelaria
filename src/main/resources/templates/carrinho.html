@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <title>Meu Carrinho</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <section class="container" style="padding: var(--espaco-6) 0; max-width: 720px;">
+
+        <h1>Seu Carrinho</h1>
+        <div class="regua-ledger regua-ledger--estreita"></div>
+
+        <div id="avisos-carrinho"></div>
+
+        <!-- UC-06, 2a: estado vazio -->
+        <div id="carrinho-vazio" class="carrinho-vazio" hidden>
+            <p>Seu carrinho está vazio.</p>
+            <a href="/produtos" class="botao botao-primario">Continuar comprando &rarr;</a>
+        </div>
+
+        <div id="carrinho-conteudo" hidden>
+            <div id="lista-itens"></div>
+
+            <div class="carrinho-resumo">
+                <div class="carrinho-resumo__linha">
+                    <span>Subtotal</span>
+                    <span id="valor-subtotal">R$ 0,00</span>
+                </div>
+                <div class="carrinho-resumo__linha">
+                    <span>Frete</span>
+                    <span class="etiqueta">calculado no próximo passo</span>
+                </div>
+                <div class="carrinho-resumo__total">
+                    <span>Total</span>
+                    <span id="valor-total">R$ 0,00</span>
+                </div>
+                <button class="botao botao-primario" style="width:100%;" disabled title="Cálculo de frete e checkout chegam nos próximos marcos">
+                    Finalizar Compra
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+    <script th:inline="none">
+        let itensCarrinho = []; // estado atual conhecido: {produtoId, nome, imagemCapa, preco, estoque, quantidade}
+
+        function formatarReal(valor) {
+            return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        async function inicializarCarrinho() {
+            const salvos = lerCarrinho();
+
+            if (salvos.length === 0) {
+                document.getElementById('carrinho-vazio').hidden = false;
+                document.getElementById('carrinho-conteudo').hidden = true;
+                return;
+            }
+
+            const resposta = await fetch('/api/carrinho/validar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itens: salvos.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade }))
+                })
+            });
+
+            if (!resposta.ok) {
+                mostrarToast('Não foi possível carregar seu carrinho. Tente novamente.');
+                return;
+            }
+
+            const dados = await resposta.json();
+            processarResposta(dados);
+        }
+
+        function processarResposta(dados) {
+            const avisos = [];
+            const disponiveis = [];
+
+            dados.itens.forEach(item => {
+                if (!item.disponivel) {
+                    avisos.push('Um produto do seu carrinho não está mais disponível e foi removido.');
+                    return;
+                }
+                if (item.quantidadeAjustada) {
+                    avisos.push('A quantidade de "' + item.nome + '" foi ajustada para ' + item.quantidade + ' unidade(s) (estoque atual).');
+                }
+                disponiveis.push(item);
+            });
+
+            itensCarrinho = disponiveis;
+
+            // Reconcilia o localStorage com a realidade do backend (RN-13, UC-06 2d)
+            salvarCarrinho(disponiveis.map(i => ({
+                produtoId: i.produtoId, quantidade: i.quantidade, precoSnapshot: i.preco
+            })));
+
+            renderizarAvisos(avisos);
+
+            if (disponiveis.length === 0) {
+                document.getElementById('carrinho-vazio').hidden = false;
+                document.getElementById('carrinho-conteudo').hidden = true;
+                return;
+            }
+
+            document.getElementById('carrinho-vazio').hidden = true;
+            document.getElementById('carrinho-conteudo').hidden = false;
+            renderizarItens();
+            atualizarTotais();
+        }
+
+        function renderizarAvisos(avisos) {
+            const container = document.getElementById('avisos-carrinho');
+            container.innerHTML = avisos.map(a => '<div class="aviso-carrinho">' + a + '</div>').join('');
+        }
+
+        function renderizarItens() {
+            const container = document.getElementById('lista-itens');
+            container.innerHTML = itensCarrinho.map(item => `
+                <div class="carrinho-item" data-produto-id="${item.produtoId}">
+                    <div class="carrinho-item__imagem">
+                        ${item.imagemCapa ? `<img src="${item.imagemCapa}" alt="${item.nome}">` : ''}
+                    </div>
+                    <div class="carrinho-item__info">
+                        <div class="carrinho-item__nome">
+                            <a href="/produto/${item.produtoId}">${item.nome}</a>
+                        </div>
+                        <div class="preco item-preco-unitario">${formatarReal(item.preco)}</div>
+                        <div class="carrinho-item__acoes">
+                            <div class="seletor-quantidade">
+                                <button type="button" onclick="handleAlterarQuantidade(${item.produtoId}, -1)">&minus;</button>
+                                <input type="number" class="item-quantidade" value="${item.quantidade}" min="1" max="${item.estoque}" readonly>
+                                <button type="button" onclick="handleAlterarQuantidade(${item.produtoId}, 1)">+</button>
+                            </div>
+                            <button type="button" class="carrinho-item__remover" onclick="handleRemoverItem(${item.produtoId})">Remover</button>
+                        </div>
+                    </div>
+                    <div class="preco item-subtotal" style="font-size:1.05rem;">${formatarReal(item.preco * item.quantidade)}</div>
+                </div>
+            `).join('');
+        }
+
+        // RN-04/RN-12: quantidade entre 1 e o estoque atual; chegando a 0, remove o item.
+        function handleAlterarQuantidade(produtoId, delta) {
+            const item = itensCarrinho.find(i => i.produtoId === produtoId);
+            if (!item) return;
+
+            const novaQuantidade = item.quantidade + delta;
+
+            if (novaQuantidade < 1) {
+                handleRemoverItem(produtoId);
+                return;
+            }
+            if (novaQuantidade > item.estoque) return;
+
+            item.quantidade = novaQuantidade;
+            salvarCarrinho(itensCarrinho.map(i => ({
+                produtoId: i.produtoId, quantidade: i.quantidade, precoSnapshot: i.preco
+            })));
+            renderizarItens();
+            atualizarTotais();
+        }
+
+        function handleRemoverItem(produtoId) {
+            itensCarrinho = itensCarrinho.filter(i => i.produtoId !== produtoId);
+            salvarCarrinho(itensCarrinho.map(i => ({
+                produtoId: i.produtoId, quantidade: i.quantidade, precoSnapshot: i.preco
+            })));
+
+            if (itensCarrinho.length === 0) {
+                document.getElementById('carrinho-vazio').hidden = false;
+                document.getElementById('carrinho-conteudo').hidden = true;
+                return;
+            }
+            renderizarItens();
+            atualizarTotais();
+        }
+
+        function atualizarTotais() {
+            const subtotal = itensCarrinho.reduce((soma, i) => soma + i.preco * i.quantidade, 0);
+            document.getElementById('valor-subtotal').textContent = formatarReal(subtotal);
+            document.getElementById('valor-total').textContent = formatarReal(subtotal);
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializarCarrinho);
+    </script>
+</main>
+</body>
+</html>
