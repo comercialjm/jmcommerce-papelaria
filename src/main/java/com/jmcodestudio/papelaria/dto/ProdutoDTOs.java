@@ -13,7 +13,8 @@ public class ProdutoDTOs {
             String nome,
             BigDecimal preco,
             String imagemCapa,
-            boolean esgotado
+            boolean esgotado,
+            boolean novo
     ) {}
 
     /** Usado na página de detalhe (UC-03) e na edição no admin (UC-14c). */

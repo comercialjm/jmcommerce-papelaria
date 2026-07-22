@@ -172,78 +172,7 @@ textarea:focus-visible {
     margin-bottom: var(--espaco-1);
 }
 
-/* Seção padrão — usada para "Categorias", "Novidades", etc. */
-.secao {
-    padding: var(--espaco-7) 0;
-}
-
-.secao__cabecalho {
-    margin-bottom: var(--espaco-5);
-}
-
-/* Banner hero (UC-01) — imagem configurável pelo admin, com fallback (RN-46) */
-.hero {
-    position: relative;
-    background: var(--cor-papel-escuro);
-    min-height: 360px;
-    display: flex;
-    align-items: center;
-}
-
-.hero--com-imagem {
-    background-size: cover;
-    background-position: center;
-}
-
-.hero--com-imagem::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(0deg, rgba(43,38,32,0.55), rgba(43,38,32,0.15));
-}
-
-.hero__conteudo {
-    position: relative;
-    z-index: 1;
-    max-width: 560px;
-}
-
-.hero--com-imagem .hero__conteudo,
-.hero--com-imagem .hero__conteudo h1,
-.hero--com-imagem .hero__conteudo p {
-    color: var(--cor-papel);
-}
-
-/* Grid de categorias — RT-18 responsivo */
-.grid-categorias {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--espaco-4);
-}
-
-@media (min-width: 768px) {
-    .grid-categorias { grid-template-columns: repeat(4, 1fr); }
-}
-
-.categoria-card__imagem {
-    aspect-ratio: 4 / 3;
-    background: var(--cor-kraft);
-    border-radius: var(--raio-card);
-    overflow: hidden;
-    margin-bottom: var(--espaco-2);
-}
-
-.categoria-card__imagem img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.categoria-card__nome {
-    font-family: var(--fonte-display);
-    font-size: 1rem;
-    text-align: center;
-}
+/* Grid responsivo do catálogo — RT-18 */
 .grid-produtos {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

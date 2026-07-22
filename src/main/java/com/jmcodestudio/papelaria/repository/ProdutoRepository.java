@@ -14,6 +14,9 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     Page<Produto> findByAtivoTrueAndCategoriaId(Long categoriaId, Pageable pageable);
 
+    // Home (UC-01): produtos em destaque = mais recentes ativos
+    Page<Produto> findByAtivoTrueOrderByCriadoEmDesc(Pageable pageable);
+
     // Busca simples (UC-04). RN-07 exige ignorar acentos também — isso depende da
     // extensão "unaccent" do Postgres e será refinado no M4 junto com a tela de busca.
     @Query("""

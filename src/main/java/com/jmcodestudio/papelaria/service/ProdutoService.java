@@ -9,9 +9,13 @@ import com.jmcodestudio.papelaria.exception.RecursoNaoEncontradoException;
 import com.jmcodestudio.papelaria.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,15 @@ public class ProdutoService {
                 ? produtoRepository.findByAtivoTrueAndCategoriaId(categoriaId, pageable)
                 : produtoRepository.findByAtivoTrue(pageable);
         return pagina.map(this::paraResumo);
+    }
+
+    /** UC-01: seção "Novidades" da home — produtos ativos mais recentes. */
+    @Transactional(readOnly = true)
+    public List<Resumo> listarDestaque(int quantidade) {
+        return produtoRepository
+                .findByAtivoTrueOrderByCriadoEmDesc(PageRequest.of(0, quantidade))
+                .map(this::paraResumo)
+                .getContent();
     }
 
     /** UC-04: busca simples por nome/descrição (RN-06/RN-07/RN-08 refinados no M4). */
@@ -111,7 +124,9 @@ public class ProdutoService {
     }
 
     private Resumo paraResumo(Produto p) {
-        return new Resumo(p.getId(), p.getNome(), p.getPreco(), p.getImagemCapa(), p.isEsgotado());
+        boolean novo = p.getCriadoEm() != null
+                && p.getCriadoEm().isAfter(LocalDateTime.now().minusDays(30));
+        return new Resumo(p.getId(), p.getNome(), p.getPreco(), p.getImagemCapa(), p.isEsgotado(), novo);
     }
 
     private Detalhe paraDetalhe(Produto p) {

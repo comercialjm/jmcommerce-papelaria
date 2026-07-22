@@ -1,0 +1,49 @@
+/*
+ * Tokens de design — Loja de Papelaria
+ * Direção visual aprovada: universo de livro-caixa (ledger) + papel kraft.
+ * Ver docs/use-cases-v2.md para o contexto do projeto.
+ */
+
+:root {
+    /* Cores — nomeadas por material, não por função genérica */
+    --cor-papel: #FAF8F3;          /* fundo principal */
+    --cor-papel-escuro: #F1EDE3;   /* superfícies secundárias sobre o papel */
+    --cor-verde-ledger: #2F4A3E;   /* marca / ações primárias */
+    --cor-verde-ledger-escuro: #23372E;
+    --cor-selo-vinho: #A23B2E;     /* destaque pontual: badges, alertas de estoque */
+    --cor-kraft: #C7B299;          /* superfícies neutras (placeholders, rodapé) */
+    --cor-tinta: #2B2620;          /* texto principal */
+    --cor-cinza-tinta: #6B6255;    /* texto secundário */
+    --cor-borda: #E4DFD3;          /* linhas e bordas sutis */
+    --cor-sucesso: #3D6B4F;
+    --cor-sucesso-fundo: #E7EFE7;
+    --cor-erro: #A23B2E;
+    --cor-erro-fundo: #F6E8E5;
+
+    /* Tipografia */
+    --fonte-display: 'Fraunces', Georgia, serif;
+    --fonte-corpo: 'Karla', system-ui, sans-serif;
+    --fonte-utilitaria: 'Space Mono', ui-monospace, monospace;
+
+    --tamanho-h1: clamp(2rem, 4vw, 3.25rem);
+    --tamanho-h2: clamp(1.5rem, 2.5vw, 2.25rem);
+    --tamanho-h3: 1.25rem;
+    --tamanho-corpo: 1rem;
+    --tamanho-pequeno: 0.8125rem;
+    --tamanho-etiqueta: 0.75rem;
+
+    /* Espaçamento */
+    --espaco-1: 4px;
+    --espaco-2: 8px;
+    --espaco-3: 12px;
+    --espaco-4: 16px;
+    --espaco-5: 24px;
+    --espaco-6: 32px;
+    --espaco-7: 48px;
+    --espaco-8: 64px;
+
+    /* Layout */
+    --largura-conteudo: 1200px;
+    --raio-card: 8px;
+    --raio-botao: 6px;
+}
