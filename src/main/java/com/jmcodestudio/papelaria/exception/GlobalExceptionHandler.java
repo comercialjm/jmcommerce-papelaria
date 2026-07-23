@@ -37,6 +37,11 @@ public class GlobalExceptionHandler {
      * inativo vinculado — caso não coberto literalmente pela RN-36, que fala só de
      * produtos ativos), devolve 409 com mensagem clara em vez de 500 genérico.
      */
+    @ExceptionHandler(ServicoExternoIndisponivelException.class)
+    public ResponseEntity<Map<String, Object>> handleServicoExterno(ServicoExternoIndisponivelException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(corpoErro(ex.getMessage()));
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleIntegridade(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

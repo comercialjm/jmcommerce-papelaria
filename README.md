@@ -105,6 +105,33 @@ no formato `postgres://user:senha@host:porta/banco`, que não é aceito pelo Hik
 `database`, `user`, `password`) do banco no `render.yaml` e montamos a URL JDBC manualmente em
 `application-prod.yml`. Se você recriar o `render.yaml` do zero, lembre-se dessa pegadinha.
 
+## Regra de ouro do Flyway
+
+## Frete (Melhor Envio)
+
+O cálculo de frete (UC-07) usa a API do Melhor Envio (sandbox por padrão). Para funcionar localmente:
+
+1. Crie uma conta em https://sandbox.melhorenvio.com.br/
+2. Vá em **Gerenciar → Tokens → Novo token**, marque a permissão **Cotação de fretes**
+   (`shipping-calculate`) e copie o token gerado.
+3. Configure a variável de ambiente `MELHOR_ENVIO_TOKEN` com esse valor (nunca no código —
+   no IntelliJ, adicione em Run/Debug Configuration → Environment variables).
+
+O token do sandbox expira em 30 dias; será necessário gerar um novo periodicamente durante o
+desenvolvimento. Em produção, avaliar se vale a pena implementar o fluxo completo de
+`refresh_token` (válido por 45 dias) para não depender de renovação manual.
+
+
+**Nunca edite uma migration que já foi aplicada em um ambiente compartilhado (Render/produção).**
+O Flyway grava um checksum de cada migration aplicada; editar o arquivo depois quebra a validação
+(`Migration checksum mismatch`) e trava o deploy. Se precisar corrigir dados ou schema, sempre crie uma
+migration **nova** (`V3__descricao.sql`, `V4__...`, etc.) — nunca edite `V1` ou `V2` outra vez.
+
+Em caso de mismatch em ambiente de desenvolvimento local (onde os dados são descartáveis), a solução é
+resetar o banco: `docker compose down -v && docker compose up -d`. Em produção, nunca faça isso sem
+confirmar antes que não há dados reais a perder — e sempre prefira `flyway repair` ou uma migration nova
+a apagar o schema, quando houver dados de verdade em jogo.
+
 ## Próximos marcos
 
 Ver `docs/use-cases-v2.md`, seção "Marcos Atualizados", para o roadmap completo (M3 em diante).

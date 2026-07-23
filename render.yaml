@@ -34,4 +34,4 @@ services:
           name: loja-papelaria-db
           property: password
       # Adicionar manualmente no dashboard do Render (nunca commitar no Git):
-      # STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY
+      # STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, MELHOR_ENVIO_TOKEN

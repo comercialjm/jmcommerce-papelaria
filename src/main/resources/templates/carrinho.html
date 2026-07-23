@@ -24,19 +24,31 @@
             <div id="lista-itens"></div>
 
             <div class="carrinho-resumo">
+                <!-- UC-07: cálculo de frete por CEP -->
+                <div style="margin-bottom: var(--espaco-4);">
+                    <div class="etiqueta" style="margin-bottom:6px;">Calcular frete</div>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="input-cep" placeholder="00000-000" maxlength="9"
+                               style="flex:1; height:34px; padding:0 10px; border:1px solid var(--cor-borda); border-radius: var(--raio-botao); font-family: var(--fonte-utilitaria);">
+                        <button type="button" class="botao botao-secundario" id="botao-calcular-frete" onclick="handleCalcularFrete()">Calcular</button>
+                    </div>
+                    <div id="erro-frete" class="aviso-carrinho" style="display:none; margin-top:8px;"></div>
+                    <div id="opcoes-frete" style="margin-top:10px;"></div>
+                </div>
+
                 <div class="carrinho-resumo__linha">
                     <span>Subtotal</span>
                     <span id="valor-subtotal">R$ 0,00</span>
                 </div>
                 <div class="carrinho-resumo__linha">
                     <span>Frete</span>
-                    <span class="etiqueta">calculado no próximo passo</span>
+                    <span id="valor-frete" class="etiqueta">selecione uma opção acima</span>
                 </div>
                 <div class="carrinho-resumo__total">
                     <span>Total</span>
                     <span id="valor-total">R$ 0,00</span>
                 </div>
-                <button class="botao botao-primario" style="width:100%;" disabled title="Cálculo de frete e checkout chegam nos próximos marcos">
+                <button class="botao botao-primario" id="botao-finalizar" style="width:100%;" disabled onclick="handleFinalizarCompra()">
                     Finalizar Compra
                 </button>
             </div>
@@ -46,6 +58,85 @@
 
     <script th:inline="none">
         let itensCarrinho = []; // estado atual conhecido: {produtoId, nome, imagemCapa, preco, estoque, quantidade}
+        let freteEscolhido = null; // {servico, transportadora, preco, prazoDias}
+        let freteCalculadoEm = null; // RN-17: validade de 30 minutos
+        let ultimasOpcoesFrete = [];
+
+        // UC-07: calcula opções de frete via /api/frete/calcular
+        async function handleCalcularFrete() {
+            const cepBruto = document.getElementById('input-cep').value;
+            const cep = cepBruto.replace(/\D/g, '');
+            const erroEl = document.getElementById('erro-frete');
+            const opcoesEl = document.getElementById('opcoes-frete');
+            const botao = document.getElementById('botao-calcular-frete');
+
+            erroEl.style.display = 'none';
+            opcoesEl.innerHTML = '';
+
+            if (cep.length !== 8) {
+                erroEl.textContent = 'CEP inválido. Informe 8 dígitos (ex: 01001-000).';
+                erroEl.style.display = 'block';
+                return;
+            }
+
+            botao.disabled = true;
+            botao.textContent = 'Calculando...';
+
+            try {
+                const resposta = await fetch('/api/frete/calcular', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cep: cep,
+                        itens: itensCarrinho.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade }))
+                    })
+                });
+
+                if (!resposta.ok) {
+                    const corpo = await resposta.json().catch(() => null);
+                    erroEl.textContent = corpo?.mensagem || 'Não foi possível calcular o frete. Tente novamente.';
+                    erroEl.style.display = 'block';
+                    return;
+                }
+
+                const opcoes = await resposta.json();
+
+                if (opcoes.length === 0) {
+                    erroEl.textContent = 'Infelizmente não entregamos neste CEP no momento.';
+                    erroEl.style.display = 'block';
+                    return;
+                }
+
+                renderizarOpcoesFrete(opcoes);
+            } catch {
+                erroEl.textContent = 'Não foi possível calcular o frete. Verifique sua conexão e tente novamente.';
+                erroEl.style.display = 'block';
+            } finally {
+                botao.disabled = false;
+                botao.textContent = 'Calcular';
+            }
+        }
+
+        function renderizarOpcoesFrete(opcoes) {
+            ultimasOpcoesFrete = opcoes;
+            const container = document.getElementById('opcoes-frete');
+            container.innerHTML = opcoes.map((opcao, indice) => `
+                <label style="display:flex; align-items:center; gap:8px; padding:8px 0; font-size: var(--tamanho-pequeno); cursor:pointer;">
+                    <input type="radio" name="opcao-frete" onclick="handleEscolherFrete(${indice})">
+                    ${opcao.servico} (${opcao.transportadora}) — ${formatarReal(opcao.preco)} — até ${opcao.prazoDias} dias úteis
+                </label>
+            `).join('');
+        }
+
+        function handleEscolherFrete(indice) {
+            freteEscolhido = ultimasOpcoesFrete[indice];
+            freteCalculadoEm = Date.now();
+            atualizarTotais();
+        }
+
+        function handleFinalizarCompra() {
+            mostrarToast('Checkout chega no próximo marco (M6) — frete já está pronto!');
+        }
 
         function formatarReal(valor) {
             return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -161,6 +252,7 @@
             salvarCarrinho(itensCarrinho.map(i => ({
                 produtoId: i.produtoId, quantidade: i.quantidade, precoSnapshot: i.preco
             })));
+            invalidarFreteEscolhido();
             renderizarItens();
             atualizarTotais();
         }
@@ -170,6 +262,7 @@
             salvarCarrinho(itensCarrinho.map(i => ({
                 produtoId: i.produtoId, quantidade: i.quantidade, precoSnapshot: i.preco
             })));
+            invalidarFreteEscolhido();
 
             if (itensCarrinho.length === 0) {
                 document.getElementById('carrinho-vazio').hidden = false;
@@ -180,10 +273,31 @@
             atualizarTotais();
         }
 
+        // RN-17: se o carrinho mudou (quantidade/remoção), a cotação anterior não vale mais.
+        function invalidarFreteEscolhido() {
+            freteEscolhido = null;
+            freteCalculadoEm = null;
+            document.getElementById('opcoes-frete').innerHTML = '';
+        }
+
         function atualizarTotais() {
             const subtotal = itensCarrinho.reduce((soma, i) => soma + i.preco * i.quantidade, 0);
             document.getElementById('valor-subtotal').textContent = formatarReal(subtotal);
-            document.getElementById('valor-total').textContent = formatarReal(subtotal);
+
+            const freteEl = document.getElementById('valor-frete');
+            const botaoFinalizar = document.getElementById('botao-finalizar');
+
+            if (freteEscolhido) {
+                freteEl.textContent = formatarReal(freteEscolhido.preco);
+                freteEl.classList.remove('etiqueta');
+                document.getElementById('valor-total').textContent = formatarReal(subtotal + freteEscolhido.preco);
+                botaoFinalizar.disabled = false;
+            } else {
+                freteEl.textContent = 'selecione uma opção acima';
+                freteEl.classList.add('etiqueta');
+                document.getElementById('valor-total').textContent = formatarReal(subtotal);
+                botaoFinalizar.disabled = true;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', inicializarCarrinho);

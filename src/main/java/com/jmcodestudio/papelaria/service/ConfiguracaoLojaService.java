@@ -13,6 +13,15 @@ public class ConfiguracaoLojaService {
 
     private final ConfiguracaoLojaRepository configuracaoLojaRepository;
 
+    /** RN-15: CEP de origem configurável (painel admin, a partir do M8). */
+    @Transactional(readOnly = true)
+    public String buscarCepOrigem() {
+        return configuracaoLojaRepository.findFirstByOrderByIdAsc()
+                .map(ConfiguracaoLoja::getCepOrigem)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Configuração da loja não encontrada — verifique a migration V1 (linha singleton)."));
+    }
+
     /** RN-46: se o admin não configurou um banner, a home usa um texto/imagem padrão. */
     @Transactional(readOnly = true)
     public BannerHeroDTO buscarBannerHero() {
