@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <title>Finalizar Compra</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <section class="container" style="padding: var(--espaco-6) 0; max-width: 640px;">
+
+        <h1>Finalizar Compra</h1>
+        <div class="regua-ledger regua-ledger--estreita"></div>
+
+        <!-- Estado: carrinho/frete ausentes -->
+        <div id="sem-dados" class="carrinho-vazio" hidden>
+            <p>Antes de finalizar, volte ao carrinho e escolha uma opção de frete.</p>
+            <a href="/carrinho" class="botao botao-primario">Ir para o carrinho</a>
+        </div>
+
+        <div id="conteudo-checkout" hidden>
+
+            <div id="erro-checkout" class="aviso-carrinho" style="display:none;"></div>
+
+            <form id="form-checkout" onsubmit="handleSubmitCheckout(event)">
+                <h3>Dados pessoais</h3>
+                <div style="margin-bottom:12px;">
+                    <label class="etiqueta">Nome completo</label><br>
+                    <input type="text" id="campo-nome" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                </div>
+                <div style="display:flex; gap:12px; margin-bottom:20px;">
+                    <div style="flex:1;">
+                        <label class="etiqueta">E-mail</label><br>
+                        <input type="email" id="campo-email" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="etiqueta">Telefone</label><br>
+                        <input type="text" id="campo-telefone" placeholder="(00) 00000-0000" required
+                               oninput="handleFormatarTelefone(this)"
+                               style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                    </div>
+                </div>
+
+                <h3>Endereço de entrega</h3>
+                <div style="display:flex; gap:12px; margin-bottom:12px;">
+                    <div style="width:140px;">
+                        <label class="etiqueta">CEP</label><br>
+                        <input type="text" id="campo-cep" required onblur="handleBuscarCep()" style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-utilitaria);">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="etiqueta">Rua</label><br>
+                        <input type="text" id="campo-rua" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                    </div>
+                </div>
+                <div style="display:flex; gap:12px; margin-bottom:12px;">
+                    <div style="width:120px;">
+                        <label class="etiqueta">Número</label><br>
+                        <input type="text" id="campo-numero" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="etiqueta">Complemento (opcional)</label><br>
+                        <input type="text" id="campo-complemento" style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                    </div>
+                </div>
+                <div style="display:flex; gap:12px; margin-bottom:20px;">
+                    <div style="flex:1;">
+                        <label class="etiqueta">Bairro</label><br>
+                        <input type="text" id="campo-bairro" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="etiqueta">Cidade</label><br>
+                        <input type="text" id="campo-cidade" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+                    </div>
+                    <div style="width:70px;">
+                        <label class="etiqueta">UF</label><br>
+                        <input type="text" id="campo-uf" maxlength="2" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo); text-transform:uppercase;">
+                    </div>
+                </div>
+
+                <h3>Resumo do pedido</h3>
+                <div id="resumo-itens" style="margin-bottom:16px;"></div>
+                <div class="carrinho-resumo__linha"><span>Subtotal</span><span id="resumo-subtotal">R$ 0,00</span></div>
+                <div class="carrinho-resumo__linha"><span>Frete</span><span id="resumo-frete">R$ 0,00</span></div>
+                <div class="carrinho-resumo__total"><span>Total</span><span id="resumo-total">R$ 0,00</span></div>
+
+                <button type="submit" id="botao-ir-pagamento" class="botao botao-primario" style="width:100%;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="margin-right:6px;">
+                        <rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Ir para Pagamento
+                </button>
+                <p style="text-align:center; font-size:var(--tamanho-etiqueta); color:var(--cor-cinza-tinta); margin-top:8px;">
+                    Pagamento processado com segurança pelo Stripe
+                </p>
+            </form>
+        </div>
+
+    </section>
+
+    <script th:inline="none">
+        let itensCheckout = [];
+        let freteCheckout = null;
+
+        function formatarReal(valor) {
+            return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        async function inicializarCheckout() {
+            const carrinho = lerCarrinho();
+            const freteSalvo = localStorage.getItem('frete_selecionado');
+
+            if (carrinho.length === 0 || !freteSalvo) {
+                document.getElementById('sem-dados').hidden = false;
+                return;
+            }
+
+            freteCheckout = JSON.parse(freteSalvo);
+
+            const resposta = await fetch('/api/carrinho/validar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itens: carrinho.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade })) })
+            });
+
+            if (!resposta.ok) {
+                document.getElementById('sem-dados').hidden = false;
+                return;
+            }
+
+            const dados = await resposta.json();
+            itensCheckout = dados.itens.filter(i => i.disponivel);
+
+            if (itensCheckout.length === 0) {
+                document.getElementById('sem-dados').hidden = false;
+                return;
+            }
+
+            document.getElementById('campo-cep').value = freteCheckout.cep;
+            renderizarResumo();
+            document.getElementById('conteudo-checkout').hidden = false;
+        }
+
+        function renderizarResumo() {
+            const container = document.getElementById('resumo-itens');
+            container.innerHTML = itensCheckout.map(i => `
+                <div style="display:flex; justify-content:space-between; font-size:var(--tamanho-pequeno); margin-bottom:4px;">
+                    <span>${i.quantidade}x ${i.nome}</span>
+                    <span>${formatarReal(i.preco * i.quantidade)}</span>
+                </div>
+            `).join('');
+
+            const subtotal = itensCheckout.reduce((soma, i) => soma + i.preco * i.quantidade, 0);
+            document.getElementById('resumo-subtotal').textContent = formatarReal(subtotal);
+            document.getElementById('resumo-frete').textContent = formatarReal(freteCheckout.preco);
+            document.getElementById('resumo-total').textContent = formatarReal(subtotal + freteCheckout.preco);
+        }
+
+        // RN-22: formata automaticamente para (XX) XXXXX-XXXX enquanto o cliente digita.
+        function handleFormatarTelefone(input) {
+            let digitos = input.value.replace(/\D/g, '').slice(0, 11);
+
+            if (digitos.length > 10) {
+                input.value = digitos.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').trim().replace(/-$/, '');
+            } else if (digitos.length > 5) {
+                input.value = digitos.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').trim().replace(/-$/, '');
+            } else if (digitos.length > 2) {
+                input.value = digitos.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+            } else if (digitos.length > 0) {
+                input.value = '(' + digitos;
+            }
+        }
+
+        // UC-08, passo 4: preenchimento automático via ViaCEP
+        async function handleBuscarCep() {
+            const cep = document.getElementById('campo-cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+
+            try {
+                const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await resposta.json();
+                if (dados.erro) return;
+
+                document.getElementById('campo-rua').value = dados.logradouro || '';
+                document.getElementById('campo-bairro').value = dados.bairro || '';
+                document.getElementById('campo-cidade').value = dados.localidade || '';
+                document.getElementById('campo-uf').value = dados.uf || '';
+            } catch {
+                // ViaCEP fora do ar não deve travar o checkout — o cliente preenche manualmente.
+            }
+        }
+
+        async function handleSubmitCheckout(evento) {
+            evento.preventDefault();
+
+            const botao = document.getElementById('botao-ir-pagamento');
+            const erroEl = document.getElementById('erro-checkout');
+            erroEl.style.display = 'none';
+
+            const payload = {
+                nomeCompleto: document.getElementById('campo-nome').value,
+                email: document.getElementById('campo-email').value,
+                telefone: document.getElementById('campo-telefone').value,
+                cep: document.getElementById('campo-cep').value.replace(/\D/g, ''),
+                rua: document.getElementById('campo-rua').value,
+                numero: document.getElementById('campo-numero').value,
+                complemento: document.getElementById('campo-complemento').value,
+                bairro: document.getElementById('campo-bairro').value,
+                cidade: document.getElementById('campo-cidade').value,
+                uf: document.getElementById('campo-uf').value.toUpperCase(),
+                itens: itensCheckout.map(i => ({ produtoId: i.produtoId, quantidade: i.quantidade })),
+                frete: {
+                    servico: freteCheckout.servico,
+                    transportadora: freteCheckout.transportadora,
+                    preco: freteCheckout.preco,
+                    prazoDias: freteCheckout.prazoDias
+                }
+            };
+
+            botao.disabled = true;
+            botao.textContent = 'Processando...';
+
+            try {
+                const resposta = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resposta.ok) {
+                    const corpo = await resposta.json().catch(() => null);
+                    let mensagem = corpo?.mensagem || 'Erro ao processar pagamento. Tente novamente.';
+
+                    // Mostra qual campo especificamente falhou (ex: "Telefone inválido...")
+                    if (corpo?.campos) {
+                        const detalhes = Object.values(corpo.campos).join(' ');
+                        mensagem += ' ' + detalhes;
+                    }
+
+                    erroEl.textContent = mensagem;
+                    erroEl.style.display = 'block';
+                    botao.disabled = false;
+                    botao.textContent = 'Ir para Pagamento';
+                    return;
+                }
+
+                const dados = await resposta.json();
+                window.location.href = dados.checkoutUrl;
+            } catch {
+                erroEl.textContent = 'Erro ao processar pagamento. Verifique sua conexão e tente novamente.';
+                erroEl.style.display = 'block';
+                botao.disabled = false;
+                botao.textContent = 'Ir para Pagamento';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializarCheckout);
+    </script>
+</main>
+</body>
+</html>

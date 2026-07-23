@@ -105,6 +105,33 @@ no formato `postgres://user:senha@host:porta/banco`, que não é aceito pelo Hik
 `database`, `user`, `password`) do banco no `render.yaml` e montamos a URL JDBC manualmente em
 `application-prod.yml`. Se você recriar o `render.yaml` do zero, lembre-se dessa pegadinha.
 
+## Pagamento (Stripe)
+
+O checkout (UC-08/UC-09) usa o Stripe Checkout hospedado — nenhum dado de cartão passa pelo
+nosso servidor (RN-19).
+
+1. Crie uma conta em https://dashboard.stripe.com/register e confirme que está em **Test mode**.
+2. Vá em **Developers → API keys** e copie a **Secret key** (`sk_test_...`).
+3. Configure a variável de ambiente `STRIPE_SECRET_KEY` com esse valor.
+
+### Testando o webhook localmente
+
+O Stripe precisa chamar nosso endpoint `/webhook/stripe` para confirmar pagamentos (RN-23/24/25),
+mas `localhost` não é acessível pela internet. Use a **Stripe CLI** para simular isso:
+
+1. Instale a Stripe CLI: https://docs.stripe.com/stripe-cli
+2. Rode `stripe login` (autentica com sua conta).
+3. Rode `stripe listen --forward-to localhost:8080/webhook/stripe` — isso imprime um
+   `whsec_...` no terminal.
+4. Configure a variável de ambiente `STRIPE_WEBHOOK_SECRET` com esse valor. **Atenção**: esse
+   `whsec_` muda toda vez que você roda `stripe listen` de novo — atualize a variável quando
+   isso acontecer.
+5. Deixe o `stripe listen` rodando em um terminal separado enquanto testa o checkout.
+
+Em produção (Render), crie um webhook endpoint de verdade em **Developers → Webhooks** no
+dashboard do Stripe, apontando para `https://SUA-URL.onrender.com/webhook/stripe`, e use o
+`whsec_` gerado ali (diferente do da CLI) na variável `STRIPE_WEBHOOK_SECRET` do Render.
+
 ## Regra de ouro do Flyway
 
 ## Frete (Melhor Envio)

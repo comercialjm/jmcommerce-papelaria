@@ -72,6 +72,13 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Pagamento -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>33.0.0</version>
+        </dependency>
+
         <!-- Health check (usado pelo Render) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

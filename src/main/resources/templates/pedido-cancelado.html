@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <title>Pagamento não concluído</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <section class="container" style="padding: var(--espaco-8) 0; max-width: 480px; text-align:center;">
+        <span class="etiqueta">Pagamento não concluído</span>
+        <h1>Seu pagamento não foi concluído.</h1>
+        <p>Seus itens ainda estão no seu carrinho, esperando por você.</p>
+
+        <div style="display:flex; gap:12px; justify-content:center; margin-top: var(--espaco-4);">
+            <a href="/carrinho" class="botao botao-primario">Voltar ao Carrinho</a>
+            <a href="/produtos" class="botao botao-secundario">Continuar Comprando</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

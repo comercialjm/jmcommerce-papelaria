@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <title>Confirmação do Pedido</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <section class="container" style="padding: var(--espaco-8) 0; max-width: 560px; text-align:center;"
+             id="secao-confirmacao"
+             th:attr="data-confirmado=${encontrado and !aindaProcessando}">
+
+        <!-- UC-10, 2a: session_id inválida -->
+        <div th:unless="${encontrado}">
+            <span class="etiqueta">Ops</span>
+            <h1>Não encontramos seu pedido.</h1>
+            <p>Se você realizou um pagamento, entre em contato conosco para que possamos ajudar.</p>
+            <a href="/produtos" class="botao botao-primario">Ver produtos</a>
+        </div>
+
+        <!-- UC-10, 2b: webhook ainda não processou -->
+        <div th:if="${encontrado and aindaProcessando}">
+            <span class="etiqueta">Um instante</span>
+            <h1>Seu pagamento está sendo processado.</h1>
+            <p>Atualize esta página em alguns instantes para ver a confirmação.</p>
+            <button onclick="location.reload()" class="botao botao-secundario">Atualizar</button>
+        </div>
+
+        <!-- Confirmação completa -->
+        <div th:if="${encontrado and !aindaProcessando}">
+            <div class="selo selo--novo" style="margin: 0 auto var(--espaco-4); width:64px; height:64px;">✓</div>
+            <h1>Obrigado pela sua compra!</h1>
+            <p>Você receberá atualizações por e-mail. Guarde o número do seu pedido:</p>
+            <div class="regua-ledger regua-ledger--estreita" style="margin-left:auto; margin-right:auto;"></div>
+            <div class="preco" style="font-size:1.3rem;" th:text="${pedido.numero}">PED00000000-000000</div>
+
+            <div style="text-align:left; background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:20px; margin: var(--espaco-5) 0;">
+                <div th:each="item : ${pedido.itens}" style="display:flex; justify-content:space-between; font-size:var(--tamanho-pequeno); margin-bottom:6px;">
+                    <span th:text="${item.quantidade} + 'x ' + ${item.nome}">1x Produto</span>
+                    <span th:text="'R$ ' + ${#numbers.formatDecimal(item.subtotalItem, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                </div>
+                <div style="border-top:1px solid var(--cor-borda); margin:10px 0; padding-top:10px; font-size:var(--tamanho-pequeno); color:var(--cor-cinza-tinta);" th:text="${pedido.enderecoCompleto}">
+                    Endereço de entrega
+                </div>
+                <div style="display:flex; justify-content:space-between; font-weight:600; margin-top:10px;">
+                    <span>Total pago</span>
+                    <span th:text="'R$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                </div>
+            </div>
+
+            <a href="/produtos" class="botao botao-primario">Continuar Comprando &rarr;</a>
+        </div>
+
+    </section>
+
+    <script th:inline="none">
+        // UC-10, passo 5: limpa o carrinho quando a compra é confirmada de verdade.
+        // Lido de um data-attribute (não de inlining do Thymeleaf) para não misturar
+        // avaliação de expressão do servidor com string JS na mão.
+        const confirmadoDeVerdade = document.getElementById('secao-confirmacao').dataset.confirmado === 'true';
+        if (confirmadoDeVerdade) {
+            localStorage.removeItem('carrinho');
+            localStorage.removeItem('frete_selecionado');
+            if (typeof atualizarContadorCarrinho === 'function') {
+                atualizarContadorCarrinho();
+            }
+        }
+    </script>
+</main>
+</body>
+</html>

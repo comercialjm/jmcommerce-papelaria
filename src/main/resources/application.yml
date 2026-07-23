@@ -24,3 +24,10 @@ melhorenvio:
   base-url: ${MELHOR_ENVIO_BASE_URL:https://sandbox.melhorenvio.com.br}
   token: ${MELHOR_ENVIO_TOKEN:}
   user-agent: ${MELHOR_ENVIO_USER_AGENT:Loja de Papelaria (contato@lojadepapelaria.com.br)}
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  # Em produção (Render), RENDER_EXTERNAL_URL já vem preenchido automaticamente pela
+  # plataforma — não precisa configurar nada manualmente lá. Localmente cai no default.
+  app-base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}

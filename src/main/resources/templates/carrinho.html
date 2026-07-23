@@ -135,7 +135,10 @@
         }
 
         function handleFinalizarCompra() {
-            mostrarToast('Checkout chega no próximo marco (M6) — frete já está pronto!');
+            if (!freteEscolhido) return;
+            const cep = document.getElementById('input-cep').value.replace(/\D/g, '');
+            localStorage.setItem('frete_selecionado', JSON.stringify({ ...freteEscolhido, cep }));
+            window.location.href = '/checkout';
         }
 
         function formatarReal(valor) {
