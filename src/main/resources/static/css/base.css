@@ -362,7 +362,86 @@ textarea:focus-visible {
     .grid-produtos { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* Página do carrinho (UC-06) */
+/* Painel admin — tabelas de listagem */
+.tabela-admin {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--cor-papel);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-card);
+    overflow: hidden;
+}
+
+.tabela-admin th {
+    text-align: left;
+    font-family: var(--fonte-utilitaria);
+    font-size: var(--tamanho-etiqueta);
+    text-transform: uppercase;
+    color: var(--cor-cinza-tinta);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--cor-borda);
+    background: var(--cor-papel-escuro);
+}
+
+.tabela-admin td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--cor-borda);
+    font-size: var(--tamanho-pequeno);
+    vertical-align: middle;
+}
+
+.tabela-admin tr:last-child td { border-bottom: none; }
+
+.tabela-admin__thumb {
+    display: block;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--cor-papel-escuro);
+}
+
+.badge-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: var(--tamanho-etiqueta);
+    font-family: var(--fonte-utilitaria);
+}
+
+.badge-status--ativo { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); }
+.badge-status--inativo { background: var(--cor-papel-escuro); color: var(--cor-cinza-tinta); }
+
+.botao-link {
+    background: none;
+    border: none;
+    color: var(--cor-cinza-tinta);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+    padding: 0;
+}
+
+.campo-admin { margin-bottom: 14px; }
+.campo-admin label {
+    display: block;
+    font-family: var(--fonte-utilitaria);
+    font-size: var(--tamanho-etiqueta);
+    text-transform: uppercase;
+    color: var(--cor-cinza-tinta);
+    margin-bottom: 4px;
+}
+.campo-admin input, .campo-admin textarea, .campo-admin select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-botao);
+    font-family: var(--fonte-corpo);
+    font-size: var(--tamanho-corpo);
+}
+.campo-admin-linha { display: flex; gap: 12px; }
+.campo-admin-linha .campo-admin { flex: 1; }
 .carrinho-item {
     display: flex;
     gap: var(--espaco-3);

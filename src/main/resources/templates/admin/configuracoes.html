@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin}">
+<head>
+    <title>Configurações</title>
+</head>
+<body>
+<main layout:fragment="content" style="max-width:560px;">
+
+    <h1>Configurações da loja</h1>
+    <div class="regua-ledger regua-ledger--estreita"></div>
+
+    <div id="mensagem" style="display:none;"></div>
+
+    <form id="form-config" onsubmit="handleSalvar(event)">
+        <div class="campo-admin">
+            <label>Nome da loja</label>
+            <input type="text" id="campo-nome-loja" required>
+        </div>
+
+        <div class="campo-admin">
+            <label>CEP de origem (para cálculo de frete)</label>
+            <input type="text" id="campo-cep-origem" required>
+        </div>
+
+        <div class="etiqueta" style="margin:16px 0 6px;">Contato</div>
+        <div class="campo-admin-linha">
+            <div class="campo-admin">
+                <label>E-mail</label>
+                <input type="email" id="campo-contato-email">
+            </div>
+            <div class="campo-admin">
+                <label>WhatsApp</label>
+                <input type="text" id="campo-contato-whatsapp" placeholder="(00) 00000-0000">
+            </div>
+        </div>
+
+        <div class="etiqueta" style="margin:16px 0 6px;">Banner hero (home)</div>
+
+        <div class="campo-admin">
+            <label>Imagem</label>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div id="preview-banner" style="display:none; position:relative; width:96px; height:56px;">
+                    <img id="preview-banner-tag" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
+                    <button type="button" onclick="handleRemoverBanner()"
+                            style="position:absolute; top:-6px; right:-6px; background:var(--cor-selo-vinho); color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:10px; line-height:1;">&times;</button>
+                </div>
+                <input type="file" id="input-arquivo-banner" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleArquivoSelecionado(event)">
+                <button type="button" id="botao-banner" onclick="document.getElementById('input-arquivo-banner').click()" class="botao botao-secundario">Escolher imagem</button>
+            </div>
+            <p style="font-size:var(--tamanho-etiqueta); color:var(--cor-cinza-tinta); margin-top:6px;">
+                Dimensão recomendada: 1600×600px. Se vazio, a home usa um texto padrão (RN-46).
+            </p>
+        </div>
+
+        <div class="campo-admin">
+            <label>Título</label>
+            <input type="text" id="campo-banner-titulo" placeholder="Papelaria, com caráter.">
+        </div>
+        <div class="campo-admin">
+            <label>Subtítulo</label>
+            <input type="text" id="campo-banner-subtitulo" placeholder="Cadernos, agendas e canetas escolhidos com cuidado...">
+        </div>
+        <div class="campo-admin">
+            <label>Link de destino (opcional)</label>
+            <input type="text" id="campo-banner-link" placeholder="/produtos">
+        </div>
+
+        <button type="submit" class="botao botao-primario" style="margin-top:10px;">Salvar configurações</button>
+    </form>
+
+    <script th:inline="none">
+        let bannerUrlAtual = null;
+
+        function mostrarMensagem(texto, sucesso) {
+            const el = document.getElementById('mensagem');
+            el.textContent = texto;
+            el.className = sucesso
+                ? '' // reaproveita cor de sucesso inline abaixo
+                : 'aviso-carrinho';
+            el.style.cssText = sucesso
+                ? 'display:block; background:var(--cor-sucesso-fundo); color:var(--cor-sucesso); padding:10px 14px; border-radius:8px; font-size:var(--tamanho-pequeno); margin-bottom:var(--espaco-4);'
+                : 'display:block;';
+        }
+
+        function atualizarPreviewBanner() {
+            const preview = document.getElementById('preview-banner');
+            if (bannerUrlAtual) {
+                document.getElementById('preview-banner-tag').src = bannerUrlAtual;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        function handleRemoverBanner() {
+            bannerUrlAtual = null;
+            atualizarPreviewBanner();
+        }
+
+        async function handleArquivoSelecionado(evento) {
+            const arquivo = evento.target.files[0];
+            evento.target.value = '';
+            if (!arquivo) return;
+
+            if (arquivo.size > 5 * 1024 * 1024) {
+                alert('Imagem muito grande. Máximo de 5MB.');
+                return;
+            }
+
+            const botao = document.getElementById('botao-banner');
+            botao.disabled = true;
+            botao.textContent = 'Enviando...';
+
+            try {
+                const formData = new FormData();
+                formData.append('arquivo', arquivo);
+                const resposta = await fetchAdmin('/admin/api/upload/imagem', { method: 'POST', body: formData });
+                if (!resposta.ok) { alert('Erro ao enviar a imagem.'); return; }
+
+                const dados = await resposta.json();
+                bannerUrlAtual = dados.url;
+                atualizarPreviewBanner();
+            } finally {
+                botao.disabled = false;
+                botao.textContent = 'Escolher imagem';
+            }
+        }
+
+        async function carregarConfiguracoes() {
+            const resposta = await fetchAdmin('/admin/api/configuracoes');
+            const c = await resposta.json();
+
+            document.getElementById('campo-nome-loja').value = c.nomeLoja || '';
+            document.getElementById('campo-cep-origem').value = c.cepOrigem || '';
+            document.getElementById('campo-contato-email').value = c.contatoEmail || '';
+            document.getElementById('campo-contato-whatsapp').value = c.contatoWhatsapp || '';
+            document.getElementById('campo-banner-titulo').value = c.bannerTitulo || '';
+            document.getElementById('campo-banner-subtitulo').value = c.bannerSubtitulo || '';
+            document.getElementById('campo-banner-link').value = c.bannerLink || '';
+
+            bannerUrlAtual = c.bannerImagemUrl || null;
+            atualizarPreviewBanner();
+        }
+
+        async function handleSalvar(evento) {
+            evento.preventDefault();
+
+            const payload = {
+                nomeLoja: document.getElementById('campo-nome-loja').value,
+                cepOrigem: document.getElementById('campo-cep-origem').value.replace(/\D/g, ''),
+                contatoEmail: document.getElementById('campo-contato-email').value,
+                contatoWhatsapp: document.getElementById('campo-contato-whatsapp').value,
+                bannerImagemUrl: bannerUrlAtual,
+                bannerTitulo: document.getElementById('campo-banner-titulo').value,
+                bannerSubtitulo: document.getElementById('campo-banner-subtitulo').value,
+                bannerLink: document.getElementById('campo-banner-link').value
+            };
+
+            const resposta = await fetchAdmin('/admin/api/configuracoes', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (resposta.ok) {
+                mostrarMensagem('Configurações salvas com sucesso.', true);
+            } else {
+                const corpo = await resposta.json().catch(() => null);
+                mostrarMensagem(corpo?.mensagem || 'Erro ao salvar configurações.', false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarConfiguracoes);
+    </script>
+</main>
+</body>
+</html>

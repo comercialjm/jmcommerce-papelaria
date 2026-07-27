@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin}">
+<head>
+    <title>Pedidos</title>
+</head>
+<body>
+<main layout:fragment="content">
+
+    <h1>Pedidos</h1>
+    <div class="regua-ledger regua-ledger--estreita"></div>
+
+    <div style="display:flex; gap:12px; margin-bottom:16px;">
+        <input type="search" id="filtro-busca" placeholder="Buscar por número ou cliente..."
+               oninput="handleFiltrar()"
+               style="flex:1; max-width:320px; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+        <select id="filtro-status" onchange="handleFiltrar()"
+                style="height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+            <option value="">Todos os status</option>
+            <option value="AGUARDANDO_PAGAMENTO">Aguardando pagamento</option>
+            <option value="PAGO">Pago</option>
+            <option value="EM_PREPARACAO">Em preparação</option>
+            <option value="ENVIADO">Enviado</option>
+            <option value="ENTREGUE">Entregue</option>
+            <option value="CANCELADO">Cancelado</option>
+            <option value="EXPIRADO">Expirado</option>
+        </select>
+    </div>
+
+    <table class="tabela-admin">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="corpo-tabela">
+            <tr><td colspan="6" style="text-align:center; color:var(--cor-cinza-tinta);">Carregando...</td></tr>
+        </tbody>
+    </table>
+
+    <div id="paginacao" style="display:flex; justify-content:center; align-items:center; gap:var(--espaco-4); margin-top:var(--espaco-5);"></div>
+
+    <script th:inline="none">
+        let paginaAtual = 0;
+        let timeoutFiltro = null;
+
+        const NOMES_STATUS = {
+            AGUARDANDO_PAGAMENTO: 'Aguardando pagamento',
+            PAGO: 'Pago',
+            EM_PREPARACAO: 'Em preparação',
+            ENVIADO: 'Enviado',
+            ENTREGUE: 'Entregue',
+            CANCELADO: 'Cancelado',
+            EXPIRADO: 'Expirado'
+        };
+
+        const COR_STATUS = {
+            AGUARDANDO_PAGAMENTO: 'badge-status--inativo',
+            PAGO: 'badge-status--ativo',
+            EM_PREPARACAO: 'badge-status--ativo',
+            ENVIADO: 'badge-status--ativo',
+            ENTREGUE: 'badge-status--ativo',
+            CANCELADO: 'badge-status--inativo',
+            EXPIRADO: 'badge-status--inativo'
+        };
+
+        function formatarReal(valor) {
+            return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatarData(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function handleFiltrar() {
+            clearTimeout(timeoutFiltro);
+            timeoutFiltro = setTimeout(() => { paginaAtual = 0; carregarPedidos(); }, 300);
+        }
+
+        async function carregarPedidos() {
+            const busca = document.getElementById('filtro-busca').value;
+            const status = document.getElementById('filtro-status').value;
+            const params = new URLSearchParams({ page: paginaAtual, size: 20 });
+            if (busca) params.set('busca', busca);
+            if (status) params.set('status', status);
+
+            const resposta = await fetchAdmin('/admin/api/pedidos?' + params.toString());
+            const dados = await resposta.json();
+            renderizarTabela(dados.content);
+            renderizarPaginacao(dados);
+        }
+
+        function renderizarTabela(pedidos) {
+            const corpo = document.getElementById('corpo-tabela');
+            if (pedidos.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--cor-cinza-tinta);">Nenhum pedido encontrado.</td></tr>';
+                return;
+            }
+
+            corpo.innerHTML = pedidos.map(p => `
+                <tr>
+                    <td class="preco">${p.numero}</td>
+                    <td style="color:var(--cor-cinza-tinta);">${formatarData(p.criadoEm)}</td>
+                    <td>${p.clienteNome}</td>
+                    <td class="preco">${formatarReal(p.total)}</td>
+                    <td><span class="badge-status ${COR_STATUS[p.status]}">${NOMES_STATUS[p.status]}</span></td>
+                    <td><a href="/admin/pedidos/${p.id}">Ver detalhes</a></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderizarPaginacao(dados) {
+            const container = document.getElementById('paginacao');
+            if (dados.totalPages <= 1) { container.innerHTML = ''; return; }
+            container.innerHTML = `
+                ${dados.number > 0 ? `<button class="botao botao-secundario" onclick="mudarPagina(${dados.number - 1})">&larr; Anterior</button>` : ''}
+                <span class="etiqueta">Página ${dados.number + 1} de ${dados.totalPages}</span>
+                ${dados.number < dados.totalPages - 1 ? `<button class="botao botao-secundario" onclick="mudarPagina(${dados.number + 1})">Próxima &rarr;</button>` : ''}
+            `;
+        }
+
+        function mudarPagina(pagina) {
+            paginaAtual = pagina;
+            carregarPedidos();
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarPedidos);
+    </script>
+</main>
+</body>
+</html>

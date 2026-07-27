@@ -1,5 +1,6 @@
 package com.jmcodestudio.papelaria.service;
 
+import com.jmcodestudio.papelaria.dto.ProdutoDTOs;
 import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Detalhe;
 import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Formulario;
 import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Resumo;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -58,11 +60,11 @@ public class ProdutoService {
         return paraDetalhe(produto);
     }
 
-    /** UC-14a/UC-14c: admin enxerga produtos ativos e inativos. */
+    /** UC-14a/UC-14c: admin enxerga produtos ativos e inativos, com mais detalhe. */
     @Transactional(readOnly = true)
-    public Page<Resumo> listarParaAdmin(String nomeFiltro, Pageable pageable) {
+    public Page<ProdutoDTOs.ResumoAdmin> listarParaAdmin(String nomeFiltro, Pageable pageable) {
         String filtro = (nomeFiltro == null) ? "" : nomeFiltro;
-        return produtoRepository.findByNomeContainingIgnoreCase(filtro, pageable).map(this::paraResumo);
+        return produtoRepository.findByNomeContainingIgnoreCase(filtro, pageable).map(this::paraResumoAdmin);
     }
 
     @Transactional(readOnly = true)
@@ -102,10 +104,12 @@ public class ProdutoService {
         produto.setPreco(form.preco());
         produto.setEstoque(form.estoque());
         produto.setCategoria(categoriaService.buscarEntidadeOuFalhar(form.categoriaId()));
-        produto.setPesoGramas(form.pesoGramas());
-        produto.setLarguraCm(form.larguraCm());
-        produto.setAlturaCm(form.alturaCm());
-        produto.setComprimentoCm(form.comprimentoCm());
+
+        // RN-16: valores padrão quando o admin não informa peso/dimensões.
+        produto.setPesoGramas(form.pesoGramas() != null ? form.pesoGramas() : 300);
+        produto.setLarguraCm(form.larguraCm() != null ? form.larguraCm() : new BigDecimal("20"));
+        produto.setAlturaCm(form.alturaCm() != null ? form.alturaCm() : new BigDecimal("15"));
+        produto.setComprimentoCm(form.comprimentoCm() != null ? form.comprimentoCm() : new BigDecimal("5"));
 
         // RN-03: substitui a lista de imagens pela nova ordem enviada pelo admin.
         // O upload físico do arquivo (Cloudinary/filesystem) é resolvido antes de
@@ -127,6 +131,13 @@ public class ProdutoService {
         boolean novo = p.getCriadoEm() != null
                 && p.getCriadoEm().isAfter(LocalDateTime.now().minusDays(30));
         return new Resumo(p.getId(), p.getNome(), p.getPreco(), p.getImagemCapa(), p.isEsgotado(), novo);
+    }
+
+    private ProdutoDTOs.ResumoAdmin paraResumoAdmin(Produto p) {
+        return new ProdutoDTOs.ResumoAdmin(
+                p.getId(), p.getNome(), p.getCategoria().getNome(),
+                p.getPreco(), p.getEstoque(), p.isAtivo(), p.getImagemCapa()
+        );
     }
 
     private Detalhe paraDetalhe(Produto p) {

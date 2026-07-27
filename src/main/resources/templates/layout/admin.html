@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title layout:title-pattern="$CONTENT_TITLE - Admin">Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/header-footer.css}">
+    <script th:src="@{/js/admin.js}" defer></script>
+</head>
+<body>
+
+    <header class="cabecalho">
+        <div class="container cabecalho__conteudo">
+            <div class="cabecalho__logo">Loja de Papelaria <span class="etiqueta">admin</span></div>
+            <nav class="cabecalho__nav" style="display:flex;">
+                <a href="/admin/dashboard">Dashboard</a>
+                <a href="/admin/produtos">Produtos</a>
+                <a href="/admin/categorias">Categorias</a>
+                <a href="/admin/pedidos">Pedidos</a>
+                <a href="/admin/configuracoes">Configurações</a>
+            </nav>
+            <form method="post" th:action="@{/admin/logout}">
+                <button type="submit" class="botao botao-secundario" style="padding:6px 14px; font-size:var(--tamanho-pequeno);">Sair</button>
+            </form>
+        </div>
+    </header>
+
+    <main layout:fragment="content" class="container" style="padding: var(--espaco-6) 0;"></main>
+
+</body>
+</html>

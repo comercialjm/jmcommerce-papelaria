@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin}">
+<head>
+    <title>Produtos</title>
+</head>
+<body>
+<main layout:fragment="content">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h1 style="margin:0;">Produtos</h1>
+        <a href="/admin/produtos/novo" class="botao botao-primario">+ Novo produto</a>
+    </div>
+
+    <div style="margin-bottom:16px; max-width:320px;">
+        <input type="search" id="filtro-nome" placeholder="Buscar por nome..."
+               oninput="handleFiltrar()"
+               style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
+    </div>
+
+    <table class="tabela-admin">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="corpo-tabela">
+            <tr><td colspan="7" style="text-align:center; color:var(--cor-cinza-tinta);">Carregando...</td></tr>
+        </tbody>
+    </table>
+
+    <div id="paginacao" style="display:flex; justify-content:center; align-items:center; gap:var(--espaco-4); margin-top:var(--espaco-5);"></div>
+
+    <script th:inline="none">
+        let paginaAtual = 0;
+        let timeoutFiltro = null;
+
+        function formatarReal(valor) {
+            return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function handleFiltrar() {
+            clearTimeout(timeoutFiltro);
+            timeoutFiltro = setTimeout(() => { paginaAtual = 0; carregarProdutos(); }, 300);
+        }
+
+        async function carregarProdutos() {
+            const nome = document.getElementById('filtro-nome').value;
+            const params = new URLSearchParams({ page: paginaAtual, size: 20 });
+            if (nome) params.set('nome', nome);
+
+            const resposta = await fetch('/admin/api/produtos?' + params.toString());
+            if (!resposta.ok) {
+                document.getElementById('corpo-tabela').innerHTML =
+                    '<tr><td colspan="7" style="text-align:center;">Erro ao carregar produtos.</td></tr>';
+                return;
+            }
+
+            const dados = await resposta.json();
+            renderizarTabela(dados.content);
+            renderizarPaginacao(dados);
+        }
+
+        function renderizarTabela(produtos) {
+            const corpo = document.getElementById('corpo-tabela');
+
+            if (produtos.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--cor-cinza-tinta);">Nenhum produto encontrado.</td></tr>';
+                return;
+            }
+
+            corpo.innerHTML = produtos.map(p => `
+                <tr>
+                    <td>${p.imagemCapa ? `<img class="tabela-admin__thumb" src="${p.imagemCapa}" alt="${p.nome}">` : '<div class="tabela-admin__thumb"></div>'}</td>
+                    <td>${p.nome}</td>
+                    <td style="color:var(--cor-cinza-tinta);">${p.categoriaNome}</td>
+                    <td class="preco">${formatarReal(p.preco)}</td>
+                    <td style="${p.estoque === 0 ? 'color:var(--cor-erro);' : ''}">${p.estoque}</td>
+                    <td><span class="badge-status ${p.ativo ? 'badge-status--ativo' : 'badge-status--inativo'}">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                    <td>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <a href="/admin/produtos/${p.id}/editar">Editar</a>
+                            <button type="button" onclick="handleAlterarStatus(${p.id}, ${!p.ativo})"
+                                    style="background:none; border:none; color:var(--cor-cinza-tinta); text-decoration:underline; cursor:pointer; font-size:inherit; padding:0;">
+                                ${p.ativo ? 'Desativar' : 'Ativar'}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderizarPaginacao(dados) {
+            const container = document.getElementById('paginacao');
+            if (dados.totalPages <= 1) { container.innerHTML = ''; return; }
+
+            container.innerHTML = `
+                ${dados.number > 0 ? `<button class="botao botao-secundario" onclick="mudarPagina(${dados.number - 1})">&larr; Anterior</button>` : ''}
+                <span class="etiqueta">Página ${dados.number + 1} de ${dados.totalPages}</span>
+                ${dados.number < dados.totalPages - 1 ? `<button class="botao botao-secundario" onclick="mudarPagina(${dados.number + 1})">Próxima &rarr;</button>` : ''}
+            `;
+        }
+
+        function mudarPagina(pagina) {
+            paginaAtual = pagina;
+            carregarProdutos();
+        }
+
+        // UC-14d: nunca exclui, só ativa/desativa (RN-26/RN-34)
+        async function handleAlterarStatus(id, novoAtivo) {
+            const acao = novoAtivo ? 'ativar' : 'desativar';
+            if (!confirm(`Deseja ${acao} este produto?`)) return;
+
+            const resposta = await fetchAdmin(`/admin/api/produtos/${id}/status?ativo=${novoAtivo}`, { method: 'PATCH' });
+            if (resposta.ok) {
+                carregarProdutos();
+            } else {
+                alert('Não foi possível alterar o status do produto.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarProdutos);
+    </script>
+</main>
+</body>
+</html>

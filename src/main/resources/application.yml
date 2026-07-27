@@ -3,6 +3,10 @@ spring:
     name: loja-papelaria
   profiles:
     default: dev # usado somente se nenhum perfil for ativado por fora (env var, --spring.profiles.active, etc.)
+  servlet:
+    multipart:
+      max-file-size: 5MB  # RN-03: máx 5MB por imagem
+      max-request-size: 10MB
   jpa:
     open-in-view: false
     hibernate:
@@ -31,3 +35,15 @@ stripe:
   # Em produção (Render), RENDER_EXTERNAL_URL já vem preenchido automaticamente pela
   # plataforma — não precisa configurar nada manualmente lá. Localmente cai no default.
   app-base-url: ${APP_BASE_URL:${RENDER_EXTERNAL_URL:http://localhost:8080}}
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+  # Resend exige um domínio verificado para o "from". Em desenvolvimento/sandbox,
+  # use o domínio de teste deles: onboarding@resend.dev (só envia para o e-mail
+  # cadastrado na sua conta Resend). Troque para um domínio real antes do lançamento.
+  from-email: ${RESEND_FROM_EMAIL:Loja de Papelaria <onboarding@resend.dev>}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}

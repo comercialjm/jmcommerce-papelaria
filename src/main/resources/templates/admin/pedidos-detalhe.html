@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin}">
+<head>
+    <title>Detalhe do Pedido</title>
+</head>
+<body>
+<main layout:fragment="content" style="max-width:720px;" th:attr="data-pedido-id=${pedidoId}">
+
+    <div id="conteudo">Carregando...</div>
+
+    <script th:inline="none">
+        const pedidoId = document.querySelector('main').dataset.pedidoId;
+
+        const NOMES_STATUS = {
+            AGUARDANDO_PAGAMENTO: 'Aguardando pagamento', PAGO: 'Pago', EM_PREPARACAO: 'Em preparação',
+            ENVIADO: 'Enviado', ENTREGUE: 'Entregue', CANCELADO: 'Cancelado', EXPIRADO: 'Expirado'
+        };
+
+        const COR_STATUS = {
+            AGUARDANDO_PAGAMENTO: 'badge-status--inativo', PAGO: 'badge-status--ativo',
+            EM_PREPARACAO: 'badge-status--ativo', ENVIADO: 'badge-status--ativo',
+            ENTREGUE: 'badge-status--ativo', CANCELADO: 'badge-status--inativo', EXPIRADO: 'badge-status--inativo'
+        };
+
+        function formatarReal(valor) {
+            return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatarData(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function carregarPedido() {
+            const resposta = await fetchAdmin(`/admin/api/pedidos/${pedidoId}`);
+            if (!resposta.ok) {
+                document.getElementById('conteudo').innerHTML = '<p>Pedido não encontrado.</p>';
+                return;
+            }
+            const p = await resposta.json();
+            renderizar(p);
+        }
+
+        function renderizar(p) {
+            document.getElementById('conteudo').innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h1 style="margin:0;">Pedido ${p.numero}</h1>
+                    <span class="badge-status ${COR_STATUS[p.status]}">${NOMES_STATUS[p.status]}</span>
+                </div>
+                <div class="regua-ledger regua-ledger--estreita"></div>
+
+                <div class="campo-admin-linha" style="margin-bottom:20px;">
+                    <div style="flex:1; background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:16px;">
+                        <div class="etiqueta" style="margin-bottom:8px;">Cliente</div>
+                        <div>${p.clienteNome}</div>
+                        <div style="color:var(--cor-cinza-tinta); font-size:var(--tamanho-pequeno);">${p.clienteEmail}</div>
+                        <div style="color:var(--cor-cinza-tinta); font-size:var(--tamanho-pequeno);">${p.clienteTelefone}</div>
+                    </div>
+                    <div style="flex:1; background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:16px;">
+                        <div class="etiqueta" style="margin-bottom:8px;">Entrega</div>
+                        <div style="font-size:var(--tamanho-pequeno);">${p.enderecoCompleto}</div>
+                        ${p.codigoRastreio ? `<div style="margin-top:8px; font-family:var(--fonte-utilitaria); font-size:var(--tamanho-pequeno);">Rastreio: ${p.codigoRastreio}</div>` : ''}
+                    </div>
+                </div>
+
+                <div class="etiqueta" style="margin-bottom:8px;">Itens</div>
+                <table class="tabela-admin" style="margin-bottom:16px;">
+                    <thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th></tr></thead>
+                    <tbody>
+                        ${p.itens.map(i => `
+                            <tr>
+                                <td>${i.produtoNome}</td>
+                                <td>${i.quantidade}</td>
+                                <td>${formatarReal(i.precoUnitario)}</td>
+                                <td>${formatarReal(i.subtotal)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div style="max-width:280px; margin-left:auto; margin-bottom:24px;">
+                    <div class="carrinho-resumo__linha"><span>Subtotal</span><span>${formatarReal(p.subtotal)}</span></div>
+                    <div class="carrinho-resumo__linha"><span>Frete (${p.freteMetodo})</span><span>${formatarReal(p.freteValor)}</span></div>
+                    <div class="carrinho-resumo__total"><span>Total</span><span>${formatarReal(p.total)}</span></div>
+                </div>
+
+                ${renderizarFormularioStatus(p)}
+
+                <div class="etiqueta" style="margin:24px 0 8px;">Histórico de status</div>
+                <div style="border:1px solid var(--cor-borda); border-radius:var(--raio-card); padding:14px; margin-bottom:24px;">
+                    ${p.historico.map(h => `
+                        <div style="font-size:var(--tamanho-pequeno); margin-bottom:6px;">
+                            <strong>${NOMES_STATUS[h.statusNovo] || h.statusNovo}</strong>
+                            <span style="color:var(--cor-cinza-tinta);"> — ${formatarData(h.criadoEm)} — por ${h.alteradoPor}</span>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="etiqueta" style="margin-bottom:8px;">E-mails enviados</div>
+                <div style="border:1px solid var(--cor-borda); border-radius:var(--raio-card); padding:14px;">
+                    ${p.emailLogs.length === 0 ? '<div style="font-size:var(--tamanho-pequeno); color:var(--cor-cinza-tinta);">Nenhum e-mail registrado ainda.</div>' : p.emailLogs.map(e => `
+                        <div style="font-size:var(--tamanho-pequeno); margin-bottom:6px;">
+                            ${e.tipo} —
+                            <span style="color:${e.sucesso ? 'var(--cor-sucesso)' : 'var(--cor-erro)'};">${e.sucesso ? 'Enviado' : 'Falhou'}</span>
+                            (tentativa ${e.tentativas}) — ${formatarData(e.criadoEm)}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderizarFormularioStatus(p) {
+            if (p.proximosStatusPossiveis.length === 0) {
+                return '<p style="color:var(--cor-cinza-tinta);">Este pedido não tem mais transições de status disponíveis.</p>';
+            }
+
+            return `
+                <div style="background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:16px; margin-bottom:16px;">
+                    <div class="etiqueta" style="margin-bottom:8px;">Atualizar status</div>
+                    <div id="erro-status" class="aviso-carrinho" style="display:none;"></div>
+                    <div class="campo-admin-linha">
+                        <div class="campo-admin">
+                            <label>Novo status</label>
+                            <select id="campo-novo-status" onchange="handleMudarSelecaoStatus()">
+                                <option value="">Selecione...</option>
+                                ${p.proximosStatusPossiveis.map(s => `<option value="${s}">${NOMES_STATUS[s]}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="campo-admin" id="campo-rastreio-container" style="display:none;">
+                            <label>Código de rastreio (opcional)</label>
+                            <input type="text" id="campo-rastreio">
+                        </div>
+                        <div class="campo-admin" id="campo-motivo-container" style="display:none;">
+                            <label>Motivo do cancelamento (opcional)</label>
+                            <input type="text" id="campo-motivo">
+                        </div>
+                    </div>
+                    <button type="button" class="botao botao-primario" onclick="handleAtualizarStatus()">Confirmar</button>
+                </div>
+            `;
+        }
+
+        function handleMudarSelecaoStatus() {
+            const valor = document.getElementById('campo-novo-status').value;
+            document.getElementById('campo-rastreio-container').style.display = valor === 'ENVIADO' ? 'block' : 'none';
+            document.getElementById('campo-motivo-container').style.display = valor === 'CANCELADO' ? 'block' : 'none';
+        }
+
+        async function handleAtualizarStatus() {
+            const novoStatus = document.getElementById('campo-novo-status').value;
+            const erroEl = document.getElementById('erro-status');
+            erroEl.style.display = 'none';
+
+            if (!novoStatus) {
+                erroEl.textContent = 'Selecione um status.';
+                erroEl.style.display = 'block';
+                return;
+            }
+
+            if (novoStatus === 'CANCELADO' && !confirm('Confirma o cancelamento deste pedido? Isso solicita reembolso via Stripe e restaura o estoque.')) {
+                return;
+            }
+
+            const payload = {
+                novoStatus: novoStatus,
+                codigoRastreio: document.getElementById('campo-rastreio-container').style.display === 'block'
+                    ? document.getElementById('campo-rastreio').value : null,
+                motivoCancelamento: document.getElementById('campo-motivo-container').style.display === 'block'
+                    ? document.getElementById('campo-motivo').value : null
+            };
+
+            const resposta = await fetchAdmin(`/admin/api/pedidos/${pedidoId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (resposta.ok) {
+                carregarPedido();
+            } else {
+                const corpo = await resposta.json().catch(() => null);
+                erroEl.textContent = corpo?.mensagem || 'Erro ao atualizar status.';
+                erroEl.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarPedido);
+    </script>
+</main>
+</body>
+</html>

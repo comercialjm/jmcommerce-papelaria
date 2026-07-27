@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin}">
+<head>
+    <title>Categorias</title>
+</head>
+<body>
+<main layout:fragment="content" style="max-width:720px;">
+
+    <h1>Categorias</h1>
+    <div class="regua-ledger regua-ledger--estreita"></div>
+
+    <div id="erro-form" class="aviso-carrinho" style="display:none;"></div>
+
+    <div style="background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:20px; margin-bottom:var(--espaco-6);">
+        <h3 id="titulo-form" style="margin-top:0;">Nova categoria</h3>
+
+        <form id="form-categoria" onsubmit="handleSalvar(event)">
+            <div class="campo-admin-linha">
+                <div class="campo-admin" style="flex:2;">
+                    <label>Nome</label>
+                    <input type="text" id="campo-nome" maxlength="100" required>
+                </div>
+                <div class="campo-admin" style="flex:1;">
+                    <label>Categoria pai (opcional)</label>
+                    <select id="campo-parent">
+                        <option value="">Nenhuma (nível 1)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="campo-admin">
+                <label>Imagem (opcional)</label>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div id="preview-imagem" style="display:none; position:relative; width:56px; height:56px;">
+                        <img id="preview-imagem-tag" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
+                        <button type="button" onclick="handleRemoverImagem()"
+                                style="position:absolute; top:-6px; right:-6px; background:var(--cor-selo-vinho); color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:10px; line-height:1;">&times;</button>
+                    </div>
+                    <input type="file" id="input-arquivo-imagem" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleArquivoSelecionado(event)">
+                    <button type="button" id="botao-imagem" onclick="document.getElementById('input-arquivo-imagem').click()" class="botao botao-secundario">Escolher imagem</button>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:12px; margin-top:10px;">
+                <button type="submit" class="botao botao-primario">Salvar</button>
+                <button type="button" id="botao-cancelar" onclick="handleCancelarEdicao()" class="botao botao-secundario" style="display:none;">Cancelar edição</button>
+            </div>
+        </form>
+    </div>
+
+    <table class="tabela-admin">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Produtos</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="corpo-tabela">
+            <tr><td colspan="4" style="text-align:center; color:var(--cor-cinza-tinta);">Carregando...</td></tr>
+        </tbody>
+    </table>
+
+    <script th:inline="none">
+        let categoriaEditandoId = null;
+        let imagemUrlAtual = null;
+        let categoriasCache = [];
+
+        async function carregarCategorias() {
+            const resposta = await fetchAdmin('/admin/api/categorias');
+            categoriasCache = await resposta.json();
+            renderizarTabela();
+            renderizarSelectPai();
+        }
+
+        function renderizarTabela() {
+            const corpo = document.getElementById('corpo-tabela');
+            if (categoriasCache.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--cor-cinza-tinta);">Nenhuma categoria cadastrada.</td></tr>';
+                return;
+            }
+
+            let linhas = [];
+            categoriasCache.forEach(cat => {
+                linhas.push(linhaCategoria(cat, false));
+                (cat.subcategorias || []).forEach(sub => linhas.push(linhaCategoria(sub, true)));
+            });
+            corpo.innerHTML = linhas.join('');
+        }
+
+        function linhaCategoria(cat, subcategoria) {
+            return `
+                <tr>
+                    <td>${subcategoria ? '&nbsp;&nbsp;&#8618; ' : ''}${cat.nome}</td>
+                    <td>${cat.quantidadeProdutos}</td>
+                    <td><span class="badge-status ${cat.ativa ? 'badge-status--ativo' : 'badge-status--inativo'}">${cat.ativa ? 'Ativa' : 'Inativa'}</span></td>
+                    <td>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button type="button" onclick="handleEditarPorId(${cat.id})" class="botao-link">Editar</button>
+                            <button type="button" onclick="handleAlterarStatus(${cat.id}, ${!cat.ativa})" class="botao-link">${cat.ativa ? 'Desativar' : 'Ativar'}</button>
+                            <button type="button" onclick="handleExcluir(${cat.id})" class="botao-link">Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderizarSelectPai() {
+            const select = document.getElementById('campo-parent');
+            const opcoes = categoriasCache
+                .filter(cat => cat.id !== categoriaEditandoId) // RN: não pode ser pai de si mesma
+                .map(cat => `<option value="${cat.id}">${cat.nome}</option>`);
+            select.innerHTML = '<option value="">Nenhuma (nível 1)</option>' + opcoes.join('');
+        }
+
+        function encontrarCategoriaPorId(id) {
+            for (const cat of categoriasCache) {
+                if (cat.id === id) return cat;
+                const sub = (cat.subcategorias || []).find(s => s.id === id);
+                if (sub) return sub;
+            }
+            return null;
+        }
+
+        function handleEditarPorId(id) {
+            const cat = encontrarCategoriaPorId(id);
+            if (!cat) return;
+
+            categoriaEditandoId = cat.id;
+            document.getElementById('titulo-form').textContent = 'Editar categoria';
+            document.getElementById('campo-nome').value = cat.nome;
+            document.getElementById('botao-cancelar').style.display = 'inline-flex';
+
+            renderizarSelectPai();
+            document.getElementById('campo-parent').value = cat.parentId || '';
+
+            imagemUrlAtual = cat.imagemUrl || null;
+            atualizarPreviewImagem();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function handleCancelarEdicao() {
+            categoriaEditandoId = null;
+            imagemUrlAtual = null;
+            document.getElementById('titulo-form').textContent = 'Nova categoria';
+            document.getElementById('form-categoria').reset();
+            document.getElementById('botao-cancelar').style.display = 'none';
+            atualizarPreviewImagem();
+            renderizarSelectPai();
+        }
+
+        function atualizarPreviewImagem() {
+            const preview = document.getElementById('preview-imagem');
+            if (imagemUrlAtual) {
+                document.getElementById('preview-imagem-tag').src = imagemUrlAtual;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        function handleRemoverImagem() {
+            imagemUrlAtual = null;
+            atualizarPreviewImagem();
+        }
+
+        async function handleArquivoSelecionado(evento) {
+            const arquivo = evento.target.files[0];
+            evento.target.value = '';
+            if (!arquivo) return;
+
+            if (arquivo.size > 5 * 1024 * 1024) {
+                alert('Imagem muito grande. Máximo de 5MB.');
+                return;
+            }
+
+            const botao = document.getElementById('botao-imagem');
+            botao.disabled = true;
+            botao.textContent = 'Enviando...';
+
+            try {
+                const formData = new FormData();
+                formData.append('arquivo', arquivo);
+                const resposta = await fetchAdmin('/admin/api/upload/imagem', { method: 'POST', body: formData });
+
+                if (!resposta.ok) {
+                    alert('Erro ao enviar a imagem.');
+                    return;
+                }
+
+                const dados = await resposta.json();
+                imagemUrlAtual = dados.url;
+                atualizarPreviewImagem();
+            } finally {
+                botao.disabled = false;
+                botao.textContent = 'Escolher imagem';
+            }
+        }
+
+        async function handleSalvar(evento) {
+            evento.preventDefault();
+            const erroEl = document.getElementById('erro-form');
+            erroEl.style.display = 'none';
+
+            const payload = {
+                nome: document.getElementById('campo-nome').value,
+                imagemUrl: imagemUrlAtual,
+                parentId: document.getElementById('campo-parent').value || null
+            };
+
+            const url = categoriaEditandoId ? `/admin/api/categorias/${categoriaEditandoId}` : '/admin/api/categorias';
+            const metodo = categoriaEditandoId ? 'PUT' : 'POST';
+
+            const resposta = await fetchAdmin(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (resposta.ok) {
+                handleCancelarEdicao();
+                carregarCategorias();
+            } else {
+                const corpo = await resposta.json().catch(() => null);
+                erroEl.textContent = corpo?.mensagem || 'Erro ao salvar categoria.';
+                erroEl.style.display = 'block';
+            }
+        }
+
+        async function handleAlterarStatus(id, novaAtiva) {
+            const acao = novaAtiva ? 'ativar' : 'desativar (e suas subcategorias, se houver)';
+            if (!confirm(`Deseja ${acao} esta categoria?`)) return;
+
+            const resposta = await fetchAdmin(`/admin/api/categorias/${id}/status?ativa=${novaAtiva}`, { method: 'PATCH' });
+            if (resposta.ok) carregarCategorias();
+            else alert('Não foi possível alterar o status.');
+        }
+
+        // RN-36: pode falhar se houver produtos ativos ou subcategorias vinculadas
+        async function handleExcluir(id) {
+            if (!confirm('Deseja excluir esta categoria? Essa ação não pode ser desfeita.')) return;
+
+            const resposta = await fetchAdmin(`/admin/api/categorias/${id}`, { method: 'DELETE' });
+            if (resposta.ok) {
+                carregarCategorias();
+            } else {
+                const corpo = await resposta.json().catch(() => null);
+                alert(corpo?.mensagem || 'Não foi possível excluir esta categoria.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarCategorias);
+    </script>
+</main>
+</body>
+</html>

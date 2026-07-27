@@ -79,6 +79,20 @@
             <version>33.0.0</version>
         </dependency>
 
+        <!-- E-mails transacionais -->
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>4.13.0</version>
+        </dependency>
+
+        <!-- Upload de imagens -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http5</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+
         <!-- Health check (usado pelo Render) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

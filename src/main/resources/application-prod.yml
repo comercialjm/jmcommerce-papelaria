@@ -1,5 +1,8 @@
 server:
   port: ${PORT:8080} # o Render injeta a variável PORT automaticamente
+  servlet:
+    session:
+      timeout: 2h # RN-30
 
 spring:
   datasource:

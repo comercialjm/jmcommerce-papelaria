@@ -2,7 +2,7 @@ package com.jmcodestudio.papelaria.controller.api.admin;
 
 import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Detalhe;
 import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Formulario;
-import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Resumo;
+import com.jmcodestudio.papelaria.dto.ProdutoDTOs.ResumoAdmin;
 import com.jmcodestudio.papelaria.service.ProdutoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class ProdutoAdminApiController {
     private final ProdutoService produtoService;
 
     @GetMapping
-    public Page<Resumo> listar(
+    public Page<ResumoAdmin> listar(
             @RequestParam(required = false) String nome,
             @PageableDefault(size = 20) Pageable pageable
     ) {

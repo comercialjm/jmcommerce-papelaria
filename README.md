@@ -105,6 +105,39 @@ no formato `postgres://user:senha@host:porta/banco`, que não é aceito pelo Hik
 `database`, `user`, `password`) do banco no `render.yaml` e montamos a URL JDBC manualmente em
 `application-prod.yml`. Se você recriar o `render.yaml` do zero, lembre-se dessa pegadinha.
 
+## Upload de imagens (Cloudinary)
+
+O cadastro/edição de produtos no admin (UC-14b/c) envia as imagens via upload real,
+armazenadas no Cloudinary (plano free: 25GB).
+
+1. Crie uma conta em https://cloudinary.com/users/register/free
+2. No dashboard, copie **Cloud Name**, **API Key** e **API Secret**.
+3. Configure as variáveis de ambiente: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+   `CLOUDINARY_API_SECRET`.
+
+As imagens ficam organizadas na pasta `loja-papelaria/produtos` dentro da sua conta
+Cloudinary.
+
+## E-mails transacionais (Resend)
+
+O e-mail de confirmação de pagamento (UC-E1) é enviado via Resend após o webhook do
+Stripe confirmar o pagamento.
+
+1. Crie uma conta em https://resend.com e pegue sua API key em **API Keys** no dashboard.
+2. Configure a variável de ambiente `RESEND_API_KEY`.
+3. **Limitação do modo de testes**: sem verificar um domínio próprio, o Resend só permite
+   enviar e-mails usando o remetente `onboarding@resend.dev`, e **apenas para o e-mail
+   cadastrado na sua própria conta Resend** — não para qualquer destinatário. Para testar
+   com o e-mail do cliente que você digitou no checkout, use o mesmo e-mail da sua conta
+   Resend ao preencher o formulário de checkout durante os testes.
+4. Antes do lançamento real, verifique um domínio próprio em **Domains** no Resend e
+   configure `RESEND_FROM_EMAIL` com um remetente desse domínio (ex:
+   `Loja de Papelaria <pedidos@lojadepapelaria.com.br>`).
+
+O log de cada envio (sucesso/falha) fica na tabela `pedido_email_log`. Falhas são
+reenviadas automaticamente uma vez, após 5 minutos (RN-26) — mas nunca bloqueiam a
+confirmação da compra em si.
+
 ## Pagamento (Stripe)
 
 O checkout (UC-08/UC-09) usa o Stripe Checkout hospedado — nenhum dado de cartão passa pelo

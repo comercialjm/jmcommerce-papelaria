@@ -33,4 +33,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     long countByCategoriaIdAndAtivoTrue(Long categoriaId);
 
     boolean existsByCategoriaIdAndAtivoTrue(Long categoriaId);
+
+    // UC-13: estatísticas do dashboard
+    long countByAtivoTrueAndEstoque(Integer estoque);
 }

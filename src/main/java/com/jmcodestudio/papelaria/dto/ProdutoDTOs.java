@@ -7,6 +7,17 @@ import java.util.List;
 
 public class ProdutoDTOs {
 
+    /** UC-14a: listagem do admin — precisa de mais campos que o resumo público. */
+    public record ResumoAdmin(
+            Long id,
+            String nome,
+            String categoriaNome,
+            BigDecimal preco,
+            Integer estoque,
+            boolean ativo,
+            String imagemCapa
+    ) {}
+
     /** Usado no grid do catálogo (UC-02) — só os campos que a listagem precisa. */
     public record Resumo(
             Long id,
@@ -55,15 +66,16 @@ public class ProdutoDTOs {
             @NotNull(message = "A categoria é obrigatória.")
             Long categoriaId,
 
-            @NotNull(message = "O peso é obrigatório para o cálculo de frete.")
+            @Size(min = 1, max = 5, message = "Cadastre de 1 a 5 imagens (RN-03).")
+            List<@NotBlank String> imagens,
+
+            // RN-16: opcionais — se não informados, o serviço aplica os padrões
+            // (300g, 20x15x5cm).
             @Min(value = 1, message = "O peso deve ser maior que zero.")
             Integer pesoGramas,
 
-            @NotNull @DecimalMin(value = "0.1") BigDecimal larguraCm,
-            @NotNull @DecimalMin(value = "0.1") BigDecimal alturaCm,
-            @NotNull @DecimalMin(value = "0.1") BigDecimal comprimentoCm,
-
-            @Size(min = 1, max = 5, message = "Cadastre de 1 a 5 imagens (RN-03).")
-            List<@NotBlank String> imagens
+            @DecimalMin(value = "0.1") BigDecimal larguraCm,
+            @DecimalMin(value = "0.1") BigDecimal alturaCm,
+            @DecimalMin(value = "0.1") BigDecimal comprimentoCm
     ) {}
 }

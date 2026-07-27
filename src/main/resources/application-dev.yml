@@ -1,5 +1,8 @@
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: 2h # RN-30: sessão do admin expira após 2h de inatividade
 
 spring:
   datasource:

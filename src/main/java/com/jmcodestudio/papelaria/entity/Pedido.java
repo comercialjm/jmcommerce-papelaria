@@ -83,6 +83,10 @@ public class Pedido {
     @OrderBy("criadoEm ASC")
     private List<PedidoStatusHistorico> historicoStatus = new ArrayList<>();
 
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("criadoEm ASC")
+    private List<PedidoEmailLog> emailLogs = new ArrayList<>();
+
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin}">
+<head>
+    <title th:text="${modo == 'criar'} ? 'Novo Produto' : 'Editar Produto'">Produto</title>
+</head>
+<body>
+<main layout:fragment="content" style="max-width:640px;"
+      th:attr="data-modo=${modo}, data-produto-id=${produtoId}">
+
+    <h1 th:text="${modo == 'criar'} ? 'Novo produto' : 'Editar produto'">Produto</h1>
+    <div class="regua-ledger regua-ledger--estreita"></div>
+
+    <div id="erro-form" class="aviso-carrinho" style="display:none;"></div>
+
+    <form id="form-produto" onsubmit="handleSubmit(event)">
+        <div class="campo-admin">
+            <label>Nome</label>
+            <input type="text" id="campo-nome" maxlength="150" required>
+        </div>
+
+        <div class="campo-admin">
+            <label>Descrição</label>
+            <textarea id="campo-descricao" rows="4" required></textarea>
+        </div>
+
+        <div class="campo-admin-linha">
+            <div class="campo-admin">
+                <label>Preço (R$)</label>
+                <input type="number" id="campo-preco" step="0.01" min="0.01" required>
+            </div>
+            <div class="campo-admin">
+                <label>Estoque</label>
+                <input type="number" id="campo-estoque" min="0" required>
+            </div>
+            <div class="campo-admin">
+                <label>Categoria</label>
+                <select id="campo-categoria" required></select>
+            </div>
+        </div>
+
+        <div class="etiqueta" style="margin: 10px 0 6px;">Peso e dimensões (opcional — usa 300g/20x15x5cm se vazio)</div>
+        <div class="campo-admin-linha">
+            <div class="campo-admin">
+                <label>Peso (g)</label>
+                <input type="number" id="campo-peso" min="1" placeholder="300">
+            </div>
+            <div class="campo-admin">
+                <label>Largura (cm)</label>
+                <input type="number" id="campo-largura" min="1" step="0.1" placeholder="20">
+            </div>
+            <div class="campo-admin">
+                <label>Altura (cm)</label>
+                <input type="number" id="campo-altura" min="1" step="0.1" placeholder="15">
+            </div>
+            <div class="campo-admin">
+                <label>Comprimento (cm)</label>
+                <input type="number" id="campo-comprimento" min="1" step="0.1" placeholder="5">
+            </div>
+        </div>
+
+        <div class="etiqueta" style="margin: 10px 0 6px;">Imagens (1 a 5, JPG/PNG/WebP, máx 5MB — RN-03)</div>
+        <div id="lista-imagens" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;"></div>
+        <input type="file" id="input-arquivo-imagem" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleArquivoSelecionado(event)">
+        <button type="button" id="botao-adicionar-imagem" onclick="handleAdicionarImagem()" class="botao botao-secundario" style="margin-bottom:20px;">+ Adicionar imagem</button>
+
+        <div style="display:flex; gap:12px;">
+            <button type="submit" class="botao botao-primario">Salvar produto</button>
+            <a href="/admin/produtos" class="botao botao-secundario">Cancelar</a>
+        </div>
+    </form>
+
+    <script th:inline="none">
+        const modo = document.querySelector('main').dataset.modo;
+        const produtoId = document.querySelector('main').dataset.produtoId;
+
+        let imagensAtuais = []; // array de URLs já hospedadas no Cloudinary, na ordem
+
+        function renderizarImagens() {
+            const container = document.getElementById('lista-imagens');
+            container.innerHTML = imagensAtuais.map((url, indice) => `
+                <div style="position:relative; width:80px; height:80px;">
+                    <img src="${url}" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
+                    <button type="button" onclick="handleRemoverImagem(${indice})"
+                            style="position:absolute; top:-6px; right:-6px; background:var(--cor-selo-vinho); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:11px; line-height:1;">
+                        &times;
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function handleAdicionarImagem() {
+            if (imagensAtuais.length >= 5) { alert('Máximo de 5 imagens por produto (RN-03).'); return; }
+            document.getElementById('input-arquivo-imagem').click();
+        }
+
+        function handleRemoverImagem(indice) {
+            imagensAtuais.splice(indice, 1);
+            renderizarImagens();
+        }
+
+        async function handleArquivoSelecionado(evento) {
+            const arquivo = evento.target.files[0];
+            evento.target.value = ''; // permite selecionar o mesmo arquivo de novo depois, se preciso
+            if (!arquivo) return;
+
+            if (arquivo.size > 5 * 1024 * 1024) {
+                alert('Imagem muito grande. Máximo de 5MB por imagem (RN-03).');
+                return;
+            }
+
+            const botao = document.getElementById('botao-adicionar-imagem');
+            botao.disabled = true;
+            botao.textContent = 'Enviando...';
+
+            try {
+                const formData = new FormData();
+                formData.append('arquivo', arquivo);
+
+                const resposta = await fetchAdmin('/admin/api/upload/imagem', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!resposta.ok) {
+                    const corpo = await resposta.json().catch(() => null);
+                    alert(corpo?.mensagem || 'Erro ao enviar a imagem. Tente novamente.');
+                    return;
+                }
+
+                const dados = await resposta.json();
+                imagensAtuais.push(dados.url);
+                renderizarImagens();
+            } finally {
+                botao.disabled = false;
+                botao.textContent = '+ Adicionar imagem';
+            }
+        }
+
+        async function carregarCategorias(categoriaIdSelecionada) {
+            const resposta = await fetchAdmin('/admin/api/categorias');
+            const categorias = await resposta.json();
+            const select = document.getElementById('campo-categoria');
+
+            const opcoes = [];
+            categorias.forEach(cat => {
+                opcoes.push({ id: cat.id, label: cat.nome });
+                (cat.subcategorias || []).forEach(sub => {
+                    opcoes.push({ id: sub.id, label: '— ' + sub.nome });
+                });
+            });
+
+            select.innerHTML = opcoes.map(o =>
+                `<option value="${o.id}" ${o.id == categoriaIdSelecionada ? 'selected' : ''}>${o.label}</option>`
+            ).join('');
+        }
+
+        async function inicializar() {
+            if (modo === 'editar') {
+                const resposta = await fetchAdmin(`/admin/api/produtos/${produtoId}`);
+                const p = await resposta.json();
+
+                document.getElementById('campo-nome').value = p.nome;
+                document.getElementById('campo-descricao').value = p.descricao;
+                document.getElementById('campo-preco').value = p.preco;
+                document.getElementById('campo-estoque').value = p.estoque;
+                document.getElementById('campo-peso').value = p.pesoGramas;
+                document.getElementById('campo-largura').value = p.larguraCm;
+                document.getElementById('campo-altura').value = p.alturaCm;
+                document.getElementById('campo-comprimento').value = p.comprimentoCm;
+
+                await carregarCategorias(p.categoriaId);
+                imagensAtuais = p.imagens || [];
+                renderizarImagens();
+            } else {
+                await carregarCategorias(null);
+                imagensAtuais = [];
+                renderizarImagens();
+            }
+        }
+
+        async function handleSubmit(evento) {
+            evento.preventDefault();
+            const erroEl = document.getElementById('erro-form');
+            erroEl.style.display = 'none';
+
+            const valorOuNulo = (id, parser) => {
+                const bruto = document.getElementById(id).value;
+                return bruto === '' ? null : parser(bruto);
+            };
+
+            if (imagensAtuais.length === 0) {
+                erroEl.textContent = 'Adicione ao menos 1 imagem (RN-03).';
+                erroEl.style.display = 'block';
+                return;
+            }
+
+            const payload = {
+                nome: document.getElementById('campo-nome').value,
+                descricao: document.getElementById('campo-descricao').value,
+                preco: parseFloat(document.getElementById('campo-preco').value),
+                estoque: parseInt(document.getElementById('campo-estoque').value, 10),
+                categoriaId: parseInt(document.getElementById('campo-categoria').value, 10),
+                pesoGramas: valorOuNulo('campo-peso', v => parseInt(v, 10)),
+                larguraCm: valorOuNulo('campo-largura', parseFloat),
+                alturaCm: valorOuNulo('campo-altura', parseFloat),
+                comprimentoCm: valorOuNulo('campo-comprimento', parseFloat),
+                imagens: imagensAtuais
+            };
+
+            const url = modo === 'criar' ? '/admin/api/produtos' : `/admin/api/produtos/${produtoId}`;
+            const metodo = modo === 'criar' ? 'POST' : 'PUT';
+
+            const resposta = await fetchAdmin(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (resposta.ok) {
+                window.location.href = '/admin/produtos';
+            } else {
+                const corpo = await resposta.json().catch(() => null);
+                let mensagem = corpo?.mensagem || 'Erro ao salvar o produto.';
+                if (corpo?.campos) mensagem += ' ' + Object.values(corpo.campos).join(' ');
+                erroEl.textContent = mensagem;
+                erroEl.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializar);
+    </script>
+</main>
+</body>
+</html>

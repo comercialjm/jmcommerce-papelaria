@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin}">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <h1>Dashboard</h1>
+    <div class="regua-ledger regua-ledger--estreita"></div>
+
+    <div id="conteudo">Carregando...</div>
+
+    <script th:inline="none">
+        const NOMES_STATUS = {
+            AGUARDANDO_PAGAMENTO: 'Aguardando pagamento', PAGO: 'Pago', EM_PREPARACAO: 'Em preparação',
+            ENVIADO: 'Enviado', ENTREGUE: 'Entregue', CANCELADO: 'Cancelado', EXPIRADO: 'Expirado'
+        };
+        const COR_STATUS = {
+            AGUARDANDO_PAGAMENTO: 'badge-status--inativo', PAGO: 'badge-status--ativo',
+            EM_PREPARACAO: 'badge-status--ativo', ENVIADO: 'badge-status--ativo',
+            ENTREGUE: 'badge-status--ativo', CANCELADO: 'badge-status--inativo', EXPIRADO: 'badge-status--inativo'
+        };
+
+        function formatarReal(valor) {
+            return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatarData(iso) {
+            const d = new Date(iso);
+            return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function carregarDashboard() {
+            const resposta = await fetchAdmin('/admin/api/dashboard');
+            const d = await resposta.json();
+            renderizar(d);
+        }
+
+        function renderizar(d) {
+            document.getElementById('conteudo').innerHTML = `
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
+                    <div style="background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:16px;">
+                        <div class="etiqueta">Produtos cadastrados</div>
+                        <div style="font-family:var(--fonte-display); font-size:1.8rem;">${d.totalProdutos}</div>
+                    </div>
+                    <div style="background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:16px;">
+                        <div class="etiqueta">Produtos esgotados</div>
+                        <div style="font-family:var(--fonte-display); font-size:1.8rem; ${d.totalProdutosEsgotados > 0 ? 'color:var(--cor-erro);' : ''}">${d.totalProdutosEsgotados}</div>
+                    </div>
+                    <div style="background:${d.pedidosPendentesEnvio > 0 ? 'var(--cor-erro-fundo)' : 'var(--cor-papel-escuro)'}; border-radius:var(--raio-card); padding:16px;">
+                        <div class="etiqueta" style="${d.pedidosPendentesEnvio > 0 ? 'color:var(--cor-erro);' : ''}">Pedidos a enviar</div>
+                        <div style="font-family:var(--fonte-display); font-size:1.8rem; ${d.pedidosPendentesEnvio > 0 ? 'color:var(--cor-erro);' : ''}">${d.pedidosPendentesEnvio}</div>
+                    </div>
+                </div>
+
+                <div class="etiqueta" style="margin-bottom:8px;">Pedidos por status</div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:28px;">
+                    ${Object.entries(d.pedidosPorStatus).map(([status, qtd]) => `
+                        <span class="badge-status ${COR_STATUS[status]}">${NOMES_STATUS[status]}: ${qtd}</span>
+                    `).join('')}
+                </div>
+
+                <div class="etiqueta" style="margin-bottom:8px;">Pedidos recentes</div>
+                <table class="tabela-admin">
+                    <thead><tr><th>Número</th><th>Data</th><th>Cliente</th><th>Total</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                        ${d.pedidosRecentes.length === 0 ? '<tr><td colspan="6" style="text-align:center; color:var(--cor-cinza-tinta);">Nenhum pedido ainda.</td></tr>' : d.pedidosRecentes.map(p => `
+                            <tr>
+                                <td class="preco">${p.numero}</td>
+                                <td style="color:var(--cor-cinza-tinta);">${formatarData(p.criadoEm)}</td>
+                                <td>${p.clienteNome}</td>
+                                <td class="preco">${formatarReal(p.total)}</td>
+                                <td><span class="badge-status ${COR_STATUS[p.status]}">${NOMES_STATUS[p.status]}</span></td>
+                                <td><a href="/admin/pedidos/${p.id}">Ver</a></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarDashboard);
+    </script>
+</main>
+</body>
+</html>
