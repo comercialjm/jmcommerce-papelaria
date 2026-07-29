@@ -20,6 +20,13 @@
         </nav>
 
         <div class="cabecalho__acoes">
+            <button type="button" class="cabecalho__acao-icone" aria-label="Como testar esta vitrine" onclick="abrirGuiaVitrine()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </button>
             <a href="/produtos" class="cabecalho__acao-icone" aria-label="Buscar produtos">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -35,6 +42,37 @@
         </div>
     </div>
 </header>
+
+<!-- Guia da vitrine: explica que é um projeto de demonstração e como testar o fluxo de compra -->
+<div id="modal-guia-vitrine" class="modal-overlay" hidden onclick="if(event.target === this) fecharGuiaVitrine()">
+    <div class="modal-conteudo" role="dialog" aria-modal="true" aria-labelledby="titulo-guia-vitrine">
+        <button type="button" class="modal-fechar" aria-label="Fechar" onclick="fecharGuiaVitrine()">&times;</button>
+
+        <span class="etiqueta">Projeto vitrine</span>
+        <h2 id="titulo-guia-vitrine" style="margin-top:6px;">Como testar esta loja</h2>
+        <p style="color:var(--cor-cinza-tinta);">
+            Esta loja é um projeto de demonstração da <strong>JM Code Studio</strong> — nenhuma cobrança
+            de verdade é feita. Fique à vontade para navegar e simular uma compra completa:
+        </p>
+
+        <ol class="guia-vitrine__lista">
+            <li>Escolha um produto no catálogo e clique em <strong>"Adicionar ao Carrinho"</strong>.</li>
+            <li>Vá até o carrinho e digite um CEP válido para calcular o frete.</li>
+            <li>Clique em <strong>"Finalizar Compra"</strong> e preencha seus dados (podem ser fictícios).</li>
+            <li>
+                Na tela de pagamento do Stripe, use o cartão de teste:
+                <div class="guia-vitrine__cartao">4242 4242 4242 4242</div>
+                Qualquer data de validade futura, qualquer CVC, qualquer CEP.
+            </li>
+            <li>Pronto! Você verá a confirmação do pedido — e, se usar um e-mail real, recebe a confirmação por lá também.</li>
+        </ol>
+
+        <p style="font-size:var(--tamanho-pequeno); color:var(--cor-cinza-tinta);">
+            Gostou do que viu? <a th:href="${'https://www.jmcodestudio.com.br'}">Fale com a JM Code Studio</a>
+            sobre um sistema assim para o seu negócio.
+        </p>
+    </div>
+</div>
 
 </body>
 </html>

@@ -76,6 +76,20 @@ function mostrarToast(mensagem) {
     }, 3000);
 }
 
+function abrirGuiaVitrine() {
+    document.getElementById('modal-guia-vitrine').hidden = false;
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharGuiaVitrine() {
+    document.getElementById('modal-guia-vitrine').hidden = true;
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', (evento) => {
+    if (evento.key === 'Escape') fecharGuiaVitrine();
+});
+
 function configurarMenuMobile() {
     const botao = document.querySelector('.cabecalho__menu-mobile');
     const nav = document.querySelector('.cabecalho__nav');
