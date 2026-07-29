@@ -7,7 +7,7 @@
 </head>
 <body>
 <main layout:fragment="content">
-    <section class="container" style="padding: var(--espaco-6) 0;">
+    <section class="container" style="padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);">
 
         <a th:href="@{/produtos(categoriaId=${produto.categoriaId})}" class="etiqueta" style="display:inline-block; margin-bottom: var(--espaco-5);">
             &larr; <span th:text="${produto.categoriaNome}">Categoria</span>
@@ -62,7 +62,7 @@
                 </div>
 
                 <button class="botao botao-primario" th:disabled="${produto.esgotado}" style="width:100%; max-width:320px;"
-                        th:attr="data-produto-id=${produto.id}, data-preco=${produto.preco}"
+                        th:attr="data-produto-id=${produto.id}, data-preco=${produto.preco}, data-produto-nome=${produto.nome}"
                         onclick="handleAdicionarAoCarrinho(this)">
                     <span th:text="${produto.esgotado} ? 'Produto Esgotado' : 'Adicionar ao Carrinho'">Adicionar ao Carrinho</span>
                 </button>
@@ -93,11 +93,14 @@
         function handleAdicionarAoCarrinho(botao) {
             const produtoId = parseInt(botao.dataset.produtoId, 10);
             const preco = parseFloat(botao.dataset.preco);
+            const nome = botao.dataset.produtoNome;
             const quantidadeInput = document.getElementById('quantidade');
             const quantidade = quantidadeInput ? parseInt(quantidadeInput.value, 10) : 1;
 
             adicionarAoCarrinho(produtoId, quantidade, preco);
-            mostrarToast('Produto adicionado ao carrinho!');
+
+            const rotulo = quantidade === 1 ? '1 item' : `${quantidade} itens`;
+            mostrarToast(`Adicionado ${rotulo} ao carrinho: ${nome}`);
         }
     </script>
 </main>

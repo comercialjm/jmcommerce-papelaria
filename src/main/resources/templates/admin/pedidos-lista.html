@@ -6,12 +6,12 @@
     <title>Pedidos</title>
 </head>
 <body>
-<main layout:fragment="content">
+<main layout:fragment="content" class="container" style="padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);">
 
     <h1>Pedidos</h1>
     <div class="regua-ledger regua-ledger--estreita"></div>
 
-    <div style="display:flex; gap:12px; margin-bottom:16px;">
+    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
         <input type="search" id="filtro-busca" placeholder="Buscar por número ou cliente..."
                oninput="handleFiltrar()"
                style="flex:1; max-width:320px; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">

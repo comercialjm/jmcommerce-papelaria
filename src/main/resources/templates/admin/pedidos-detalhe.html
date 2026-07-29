@@ -6,7 +6,7 @@
     <title>Detalhe do Pedido</title>
 </head>
 <body>
-<main layout:fragment="content" style="max-width:720px;" th:attr="data-pedido-id=${pedidoId}">
+<main layout:fragment="content" class="container" style="max-width:720px; padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);" th:attr="data-pedido-id=${pedidoId}">
 
     <div id="conteudo">Carregando...</div>
 
@@ -45,8 +45,8 @@
 
         function renderizar(p) {
             document.getElementById('conteudo').innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h1 style="margin:0;">Pedido ${p.numero}</h1>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center;">
+                    <h1 style="margin:0; font-size:1.4rem; word-break:break-word;">Pedido ${p.numero}</h1>
                     <span class="badge-status ${COR_STATUS[p.status]}">${NOMES_STATUS[p.status]}</span>
                 </div>
                 <div class="regua-ledger regua-ledger--estreita"></div>

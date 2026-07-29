@@ -10,14 +10,13 @@
             </svg>
         </button>
 
-        <a href="/" class="cabecalho__logo">
-            <!-- TODO (M8): substituir por th:text a partir de configuracao_loja.nome_loja -->
+        <a href="/" class="cabecalho__logo" th:text="${configuracaoLoja?.nomeLoja} ?: 'Loja de Papelaria'">
             Loja de Papelaria
         </a>
 
-        <nav class="cabecalho__nav" aria-label="Navegação principal">
+        <nav class="cabecalho__nav" aria-label="Navegação principal" id="nav-principal">
             <a href="/produtos">Produtos</a>
-            <!-- TODO (M4): categorias carregadas dinamicamente via /api/categorias -->
+            <!-- categorias inseridas aqui via JS (main.js, popularNavCategorias) -->
         </nav>
 
         <div class="cabecalho__acoes">

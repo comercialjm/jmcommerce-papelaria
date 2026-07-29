@@ -6,13 +6,15 @@
     <div class="container rodape__conteudo">
         <div class="rodape__colunas">
             <div>
-                <div class="rodape__titulo">Loja de Papelaria</div>
+                <div class="rodape__titulo" th:text="${configuracaoLoja?.nomeLoja} ?: 'Loja de Papelaria'">Loja de Papelaria</div>
                 <p class="rodape__texto">Papelaria selecionada com cuidado, para quem gosta de escrever, planejar e guardar memórias no papel.</p>
             </div>
             <div>
                 <div class="rodape__titulo">Atendimento</div>
-                <!-- TODO (M8): substituir pelos dados reais de configuracao_loja -->
-                <p class="rodape__texto">contato@lojadepapelaria.com.br<br>(00) 00000-0000</p>
+                <p class="rodape__texto">
+                    <span th:text="${configuracaoLoja?.contatoEmail} ?: 'contato@lojadepapelaria.com.br'">contato@lojadepapelaria.com.br</span><br>
+                    <span th:text="${configuracaoLoja?.contatoWhatsapp} ?: '(00) 00000-0000'">(00) 00000-0000</span>
+                </p>
             </div>
             <div>
                 <div class="rodape__titulo">Navegação</div>
@@ -22,7 +24,7 @@
         </div>
 
         <div class="rodape__assinatura">
-            <span>&copy; <span th:text="${#calendars.format(#calendars.createNow(),'yyyy')}">2026</span> Loja de Papelaria</span>
+            <span>&copy; <span th:text="${#calendars.format(#calendars.createNow(),'yyyy')}">2026</span> <span th:text="${configuracaoLoja?.nomeLoja} ?: 'Loja de Papelaria'">Loja de Papelaria</span></span>
             <!-- RN-45: link fixo no código, não editável pelo admin -->
             <span>Desenvolvido por <a href="https://www.jmcodestudio.com.br" target="_blank" rel="noopener">JM Code Studio</a></span>
         </div>

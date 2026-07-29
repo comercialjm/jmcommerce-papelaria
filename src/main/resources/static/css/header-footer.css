@@ -12,7 +12,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--espaco-4) 0;
+    gap: var(--espaco-3);
+    padding-top: var(--espaco-4);
+    padding-bottom: var(--espaco-4);
     position: relative;
 }
 
@@ -21,6 +23,15 @@
     font-size: 1.4rem;
     font-weight: 600;
     color: var(--cor-tinta);
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+    .cabecalho__logo { font-size: 1.05rem; }
 }
 
 .cabecalho__nav {
@@ -52,7 +63,10 @@
     display: flex;
     align-items: center;
     gap: var(--espaco-4);
+    flex-shrink: 0;
 }
+
+.cabecalho__conteudo > form { flex-shrink: 0; } /* botão "Sair" do admin */
 
 .cabecalho__acao-icone {
     position: relative;
@@ -77,12 +91,16 @@
     justify-content: center;
 }
 
+/* O atributo "hidden" precisa vencer o display:flex acima, ou o contador
+   fica visível mesmo com o carrinho vazio (o display:flex de uma classe
+   tem mais força que a regra padrão do navegador para [hidden]). */
 .cabecalho__contador-carrinho[hidden] {
     display: none;
 }
 
 .cabecalho__menu-mobile {
     display: inline-flex;
+    flex-shrink: 0;
     background: none;
     border: none;
     cursor: pointer;
@@ -100,7 +118,8 @@
 }
 
 .rodape__conteudo {
-    padding: var(--espaco-6) 0 var(--espaco-4);
+    padding-top: var(--espaco-6);
+    padding-bottom: var(--espaco-4);
 }
 
 .rodape__colunas {

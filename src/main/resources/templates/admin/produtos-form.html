@@ -6,7 +6,7 @@
     <title th:text="${modo == 'criar'} ? 'Novo Produto' : 'Editar Produto'">Produto</title>
 </head>
 <body>
-<main layout:fragment="content" style="max-width:640px;"
+<main layout:fragment="content" class="container" style="max-width:640px; padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);"
       th:attr="data-modo=${modo}, data-produto-id=${produtoId}">
 
     <h1 th:text="${modo == 'criar'} ? 'Novo produto' : 'Editar produto'">Produto</h1>
@@ -32,7 +32,7 @@
             </div>
             <div class="campo-admin">
                 <label>Estoque</label>
-                <input type="number" id="campo-estoque" min="0" required>
+                <input type="number" id="campo-estoque" min="0" max="999" required>
             </div>
             <div class="campo-admin">
                 <label>Categoria</label>
@@ -81,7 +81,7 @@
             const container = document.getElementById('lista-imagens');
             container.innerHTML = imagensAtuais.map((url, indice) => `
                 <div style="position:relative; width:80px; height:80px;">
-                    <img src="${url}" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
+                    <img src="${url}" alt="Imagem do produto" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
                     <button type="button" onclick="handleRemoverImagem(${indice})"
                             style="position:absolute; top:-6px; right:-6px; background:var(--cor-selo-vinho); color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:11px; line-height:1;">
                         &times;

@@ -62,13 +62,18 @@ function mostrarToast(mensagem) {
         document.body.appendChild(toast);
     }
 
-    toast.textContent = mensagem;
+    toast.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <span>${mensagem}</span>
+    `;
     toast.classList.add('toast--visivel');
 
     clearTimeout(toast._timeoutId);
     toast._timeoutId = setTimeout(() => {
         toast.classList.remove('toast--visivel');
-    }, 2500);
+    }, 3000);
 }
 
 function configurarMenuMobile() {
@@ -83,7 +88,71 @@ function configurarMenuMobile() {
     });
 }
 
+// Preenche o menu com as categorias reais, em vez de deixar só "Produtos" sozinho.
+// Se houver muitas, agrupa o excedente num "Mais ▾" para não estourar o header.
+const MAX_CATEGORIAS_VISIVEIS = 4;
+
+async function popularNavCategorias() {
+    const nav = document.getElementById('nav-principal');
+    if (!nav) return;
+
+    try {
+        const resposta = await fetch('/api/categorias');
+        if (!resposta.ok) return;
+        const categorias = await resposta.json();
+
+        const visiveis = categorias.slice(0, MAX_CATEGORIAS_VISIVEIS);
+        const restantes = categorias.slice(MAX_CATEGORIAS_VISIVEIS);
+
+        visiveis.forEach(cat => {
+            const link = document.createElement('a');
+            link.href = `/produtos?categoriaId=${cat.id}`;
+            link.textContent = cat.nome;
+            nav.appendChild(link);
+        });
+
+        if (restantes.length > 0) {
+            nav.appendChild(criarMenuMais(restantes));
+        }
+    } catch {
+        // Sem categorias no menu não deve quebrar a navegação básica.
+    }
+}
+
+function criarMenuMais(categorias) {
+    const container = document.createElement('div');
+    container.style.cssText = 'position:relative; display:inline-block;';
+
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.textContent = 'Mais ▾';
+    botao.style.cssText = 'background:none; border:none; font:inherit; color:inherit; cursor:pointer; padding:0;';
+
+    const dropdown = document.createElement('div');
+    dropdown.style.cssText = `
+        display:none; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+        margin-top:12px; background:var(--cor-papel); border:1px solid var(--cor-borda);
+        border-radius:var(--raio-card); box-shadow:0 8px 24px rgba(43,38,32,0.12);
+        padding:8px 0; min-width:180px; z-index:20; text-align:left;
+    `;
+    dropdown.innerHTML = categorias.map(cat =>
+        `<a href="/produtos?categoriaId=${cat.id}" style="display:block; padding:8px 16px; white-space:nowrap;">${cat.nome}</a>`
+    ).join('');
+
+    botao.addEventListener('click', () => {
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) dropdown.style.display = 'none';
+    });
+
+    container.appendChild(botao);
+    container.appendChild(dropdown);
+    return container;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     atualizarContadorCarrinho();
     configurarMenuMobile();
+    popularNavCategorias();
 });

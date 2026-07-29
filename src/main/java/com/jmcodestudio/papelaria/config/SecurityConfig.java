@@ -1,8 +1,10 @@
 package com.jmcodestudio.papelaria.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,10 +15,6 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * UC-12: protege as rotas /admin/** com login por formulário (RN-31). O site
  * público continua liberado — só o painel admin exige autenticação.
- *
- * TODO (próximos passos do M8): revisar se algum endpoint de escrita da API
- * pública (carrinho, checkout, frete) precisa de tratamento adicional quando
- * o admin panel também passar a consumir /admin/api/** autenticado.
  */
 @Configuration
 public class SecurityConfig {
@@ -41,6 +39,23 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/admin/login?saiu")
                 .permitAll()
             )
+            // RT-04: cabeçalhos de segurança. CSP aqui é deliberadamente permissivo
+            // com 'unsafe-inline' — o sistema usa bastante <script>/style inline nos
+            // templates Thymeleaf, e migrar tudo para nonces é um refactor grande
+            // demais para o retorno de segurança neste projeto. Ainda assim, a
+            // política restringe a origens conhecidas (Cloudinary, Google Fonts,
+            // ViaCEP) em vez de liberar tudo.
+            .headers(headers -> headers
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "default-src 'self'; " +
+                    "script-src 'self' 'unsafe-inline'; " +
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                    "font-src 'self' https://fonts.gstatic.com; " +
+                    "img-src 'self' data: https:; " +
+                    "connect-src 'self' https://viacep.com.br; " +
+                    "frame-ancestors 'none'"
+                ))
+            )
             // RT-03: CSRF protege os formulários do admin. A API pública (carrinho,
             // checkout, frete, webhook) é consumida por JS/Stripe sem sessão
             // autenticada — exigir token ali quebraria o fluxo de compra sem
@@ -63,6 +78,15 @@ public class SecurityConfig {
     @Bean
     public AuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher publisher) {
         return new DefaultAuthenticationEventPublisher(publisher);
+    }
+
+    // RT-05: precisa rodar ANTES do filtro do Spring Security, para barrar excesso
+    // de tentativas sem sequer gastar ciclo verificando senha.
+    @Bean
+    public FilterRegistrationBean<RateLimitFilter> rateLimitFilter() {
+        FilterRegistrationBean<RateLimitFilter> registro = new FilterRegistrationBean<>(new RateLimitFilter());
+        registro.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return registro;
     }
 
 }

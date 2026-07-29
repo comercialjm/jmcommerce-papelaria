@@ -15,3 +15,18 @@ function fetchAdmin(url, options = {}) {
         headers: { ...(options.headers || {}), ...csrfHeaders() }
     });
 }
+
+// Menu hambúrguer do admin em telas estreitas (mesmo padrão do site público).
+function configurarMenuMobileAdmin() {
+    const botao = document.querySelector('.cabecalho__menu-mobile');
+    const nav = document.querySelector('.cabecalho__nav');
+    if (!botao || !nav) return;
+
+    botao.addEventListener('click', () => {
+        const aberto = botao.getAttribute('aria-expanded') === 'true';
+        botao.setAttribute('aria-expanded', String(!aberto));
+        nav.classList.toggle('cabecalho__nav--aberto');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', configurarMenuMobileAdmin);

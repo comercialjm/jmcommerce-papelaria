@@ -6,7 +6,7 @@
     <title>Dashboard</title>
 </head>
 <body>
-<main layout:fragment="content">
+<main layout:fragment="content" class="container" style="padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);">
     <h1>Dashboard</h1>
     <div class="regua-ledger regua-ledger--estreita"></div>
 
@@ -40,7 +40,7 @@
 
         function renderizar(d) {
             document.getElementById('conteudo').innerHTML = `
-                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
+                <div class="grid-dashboard-stats">
                     <div style="background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:16px;">
                         <div class="etiqueta">Produtos cadastrados</div>
                         <div style="font-family:var(--fonte-display); font-size:1.8rem;">${d.totalProdutos}</div>

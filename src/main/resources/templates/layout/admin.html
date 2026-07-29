@@ -16,14 +16,22 @@
 
     <header class="cabecalho">
         <div class="container cabecalho__conteudo">
+            <button class="cabecalho__menu-mobile" aria-label="Abrir menu" aria-controls="nav-admin" aria-expanded="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+
             <div class="cabecalho__logo">Loja de Papelaria <span class="etiqueta">admin</span></div>
-            <nav class="cabecalho__nav" style="display:flex;">
+
+            <nav class="cabecalho__nav" id="nav-admin">
                 <a href="/admin/dashboard">Dashboard</a>
                 <a href="/admin/produtos">Produtos</a>
                 <a href="/admin/categorias">Categorias</a>
                 <a href="/admin/pedidos">Pedidos</a>
                 <a href="/admin/configuracoes">Configurações</a>
             </nav>
+
             <form method="post" th:action="@{/admin/logout}">
                 <button type="submit" class="botao botao-secundario" style="padding:6px 14px; font-size:var(--tamanho-pequeno);">Sair</button>
             </form>

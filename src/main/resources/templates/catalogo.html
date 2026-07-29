@@ -7,7 +7,7 @@
 </head>
 <body>
 <main layout:fragment="content">
-    <section class="container" style="padding: var(--espaco-6) 0;">
+    <section class="container" style="padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);">
 
         <!-- Cabeçalho: título muda conforme busca/categoria/catálogo completo -->
         <div class="secao__cabecalho">
@@ -40,7 +40,7 @@
         </div>
 
         <!-- UC-02, passo 4: ordenação -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--espaco-5);">
+        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-bottom: var(--espaco-5);">
             <span class="etiqueta" th:text="${produtos.totalElements} + ' produto(s)'">0 produtos</span>
             <select onchange="location.href=this.value" style="font-family: var(--fonte-utilitaria); font-size: var(--tamanho-etiqueta); border:1px solid var(--cor-borda); border-radius: var(--raio-botao); padding:6px 10px; background:var(--cor-papel);">
                 <option th:value="@{/produtos(categoriaId=${categoriaId}, q=${q}, ordenar='recentes')}"
@@ -55,7 +55,7 @@
         </div>
 
         <!-- UC-02, 3a / UC-04, 2a: estados vazios -->
-        <div th:if="${produtos.totalElements == 0}" style="padding: var(--espaco-7) 0; text-align:center;">
+        <div th:if="${produtos.totalElements == 0}" style="padding-top: var(--espaco-7); padding-bottom: var(--espaco-7); text-align:center;">
             <p th:if="${q != null}" th:text="'Nenhum produto encontrado para “' + ${q} + '”. Tente outro termo ou navegue pelas categorias.'">
                 Nenhum produto encontrado.
             </p>

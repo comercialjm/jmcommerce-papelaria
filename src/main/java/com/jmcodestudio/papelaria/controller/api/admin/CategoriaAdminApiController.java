@@ -13,9 +13,7 @@ import java.util.List;
 
 /**
  * CRUD de categorias do painel admin (UC-15).
- *
- * TODO (M8): proteger com Spring Security (ROLE_ADMIN), assim como o
- * ProdutoAdminApiController.
+ * Protegido por ROLE_ADMIN via SecurityConfig (rota /admin/**, desde o M8).
  */
 @RestController
 @RequestMapping("/admin/api/categorias")

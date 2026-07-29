@@ -27,10 +27,10 @@
 
     --tamanho-h1: clamp(2rem, 4vw, 3.25rem);
     --tamanho-h2: clamp(1.5rem, 2.5vw, 2.25rem);
-    --tamanho-h3: 1.25rem;
-    --tamanho-corpo: 1rem;
-    --tamanho-pequeno: 0.8125rem;
-    --tamanho-etiqueta: 0.75rem;
+    --tamanho-h3: 1.3rem;
+    --tamanho-corpo: 1.0625rem;
+    --tamanho-pequeno: 0.9375rem;
+    --tamanho-etiqueta: 0.8125rem;
 
     /* Espaçamento */
     --espaco-1: 4px;

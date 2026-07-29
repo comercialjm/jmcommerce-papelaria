@@ -6,7 +6,7 @@
     <title>Categorias</title>
 </head>
 <body>
-<main layout:fragment="content" style="max-width:720px;">
+<main layout:fragment="content" class="container" style="max-width:720px; padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);">
 
     <h1>Categorias</h1>
     <div class="regua-ledger regua-ledger--estreita"></div>
@@ -14,7 +14,11 @@
     <div id="erro-form" class="aviso-carrinho" style="display:none;"></div>
 
     <div style="background:var(--cor-papel-escuro); border-radius:var(--raio-card); padding:20px; margin-bottom:var(--espaco-6);">
-        <h3 id="titulo-form" style="margin-top:0;">Nova categoria</h3>
+        <h3 id="titulo-form" style="margin-top:0;">Nova categoria principal</h3>
+        <p id="subtitulo-form" style="color:var(--cor-cinza-tinta); font-size:var(--tamanho-pequeno); margin-top:-8px;">
+            Categorias principais aparecem no menu do site. Para criar uma subcategoria, use o botão
+            "+ Subcategoria" na linha da categoria principal, na tabela abaixo.
+        </p>
 
         <form id="form-categoria" onsubmit="handleSalvar(event)">
             <div class="campo-admin-linha">
@@ -22,10 +26,10 @@
                     <label>Nome</label>
                     <input type="text" id="campo-nome" maxlength="100" required>
                 </div>
-                <div class="campo-admin" style="flex:1;">
-                    <label>Categoria pai (opcional)</label>
-                    <select id="campo-parent">
-                        <option value="">Nenhuma (nível 1)</option>
+                <div class="campo-admin" style="flex:1;" id="container-campo-parent">
+                    <label>É subcategoria de</label>
+                    <select id="campo-parent" disabled>
+                        <option value="">Nenhuma — categoria principal</option>
                     </select>
                 </div>
             </div>
@@ -34,7 +38,7 @@
                 <label>Imagem (opcional)</label>
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div id="preview-imagem" style="display:none; position:relative; width:56px; height:56px;">
-                        <img id="preview-imagem-tag" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
+                        <img id="preview-imagem-tag" alt="Pré-visualização da imagem da categoria" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
                         <button type="button" onclick="handleRemoverImagem()"
                                 style="position:absolute; top:-6px; right:-6px; background:var(--cor-selo-vinho); color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:10px; line-height:1;">&times;</button>
                     </div>
@@ -98,8 +102,9 @@
                     <td>${cat.quantidadeProdutos}</td>
                     <td><span class="badge-status ${cat.ativa ? 'badge-status--ativo' : 'badge-status--inativo'}">${cat.ativa ? 'Ativa' : 'Inativa'}</span></td>
                     <td>
-                        <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                             <button type="button" onclick="handleEditarPorId(${cat.id})" class="botao-link">Editar</button>
+                            ${!subcategoria ? `<button type="button" onclick="handleNovaSubcategoria(${cat.id})" class="botao-link">+ Subcategoria</button>` : ''}
                             <button type="button" onclick="handleAlterarStatus(${cat.id}, ${!cat.ativa})" class="botao-link">${cat.ativa ? 'Desativar' : 'Ativar'}</button>
                             <button type="button" onclick="handleExcluir(${cat.id})" class="botao-link">Excluir</button>
                         </div>
@@ -130,9 +135,11 @@
             if (!cat) return;
 
             categoriaEditandoId = cat.id;
-            document.getElementById('titulo-form').textContent = 'Editar categoria';
+            document.getElementById('titulo-form').textContent = cat.parentId ? 'Editar subcategoria' : 'Editar categoria principal';
+            document.getElementById('subtitulo-form').style.display = 'none';
             document.getElementById('campo-nome').value = cat.nome;
             document.getElementById('botao-cancelar').style.display = 'inline-flex';
+            document.getElementById('campo-parent').disabled = false;
 
             renderizarSelectPai();
             document.getElementById('campo-parent').value = cat.parentId || '';
@@ -143,12 +150,28 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // Atalho pedido no feedback de UX: cria a subcategoria já com o pai certo,
+        // em vez de obrigar o admin a descobrir isso sozinho num dropdown genérico.
+        function handleNovaSubcategoria(parentId) {
+            const pai = encontrarCategoriaPorId(parentId);
+            handleCancelarEdicao();
+            document.getElementById('titulo-form').textContent = pai ? `Nova subcategoria de "${pai.nome}"` : 'Nova subcategoria';
+            document.getElementById('subtitulo-form').style.display = 'none';
+            document.getElementById('campo-parent').disabled = false;
+            renderizarSelectPai();
+            document.getElementById('campo-parent').value = parentId;
+            document.getElementById('campo-nome').focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function handleCancelarEdicao() {
             categoriaEditandoId = null;
             imagemUrlAtual = null;
-            document.getElementById('titulo-form').textContent = 'Nova categoria';
+            document.getElementById('titulo-form').textContent = 'Nova categoria principal';
+            document.getElementById('subtitulo-form').style.display = 'block';
             document.getElementById('form-categoria').reset();
             document.getElementById('botao-cancelar').style.display = 'none';
+            document.getElementById('campo-parent').disabled = true;
             atualizarPreviewImagem();
             renderizarSelectPai();
         }

@@ -4,9 +4,12 @@
 
 html {
     -webkit-text-size-adjust: 100%;
+    font-size: 112.5%; /* 18px base — todo rem do sistema escala a partir daqui */
+    overflow-x: hidden; /* rede de segurança: nenhum elemento isolado deve conseguir "vazar" a página pro lado */
 }
 
 body {
+    overflow-x: hidden;
     margin: 0;
     font-family: var(--fonte-corpo);
     font-size: var(--tamanho-corpo);
@@ -61,6 +64,10 @@ textarea:focus-visible {
     padding: 0 var(--espaco-4);
 }
 
+@media (max-width: 480px) {
+    .container { padding: 0 var(--espaco-5); } /* telas bem estreitas pedem mais respiro nas bordas */
+}
+
 /* Etiqueta utilitária: preços, categorias, metadados — remete a carimbo de estoque */
 .etiqueta {
     font-family: var(--fonte-utilitaria);
@@ -72,7 +79,7 @@ textarea:focus-visible {
 
 .preco {
     font-family: var(--fonte-utilitaria);
-    font-size: 1.05em;
+    font-size: 1.1em;
     color: var(--cor-verde-ledger);
 }
 
@@ -168,13 +175,14 @@ textarea:focus-visible {
 
 .card-produto__nome {
     font-family: var(--fonte-display);
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     margin-bottom: var(--espaco-1);
 }
 
 /* Seção padrão — usada para "Categorias", "Novidades", etc. */
 .secao {
-    padding: var(--espaco-7) 0;
+    padding-top: var(--espaco-7);
+    padding-bottom: var(--espaco-7);
 }
 
 .secao__cabecalho {
@@ -226,11 +234,19 @@ textarea:focus-visible {
 }
 
 .categoria-card__imagem {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 8;
     background: var(--cor-kraft);
     border-radius: var(--raio-card);
+    border: 1px solid var(--cor-borda);
+    box-shadow: 0 3px 8px rgba(43, 38, 32, 0.10);
     overflow: hidden;
     margin-bottom: var(--espaco-2);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.categoria-card:hover .categoria-card__imagem {
+    box-shadow: 0 6px 14px rgba(43, 38, 32, 0.16);
+    transform: translateY(-2px);
 }
 
 .categoria-card__imagem img {
@@ -241,8 +257,17 @@ textarea:focus-visible {
 
 .categoria-card__nome {
     font-family: var(--fonte-display);
-    font-size: 1rem;
+    font-size: 1.15rem;
     text-align: center;
+}
+
+.categoria-card__imagem--mais {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cor-papel-escuro);
+    border-style: dashed;
+    color: var(--cor-verde-ledger);
 }
 
 /* Página de detalhe do produto (UC-03) */
@@ -372,6 +397,14 @@ textarea:focus-visible {
     overflow: hidden;
 }
 
+@media (max-width: 640px) {
+    .tabela-admin {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
 .tabela-admin th {
     text-align: left;
     font-family: var(--fonte-utilitaria);
@@ -412,6 +445,17 @@ textarea:focus-visible {
 .badge-status--ativo { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); }
 .badge-status--inativo { background: var(--cor-papel-escuro); color: var(--cor-cinza-tinta); }
 
+.grid-dashboard-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (min-width: 640px) {
+    .grid-dashboard-stats { grid-template-columns: repeat(3, 1fr); }
+}
+
 .botao-link {
     background: none;
     border: none;
@@ -440,8 +484,13 @@ textarea:focus-visible {
     font-family: var(--fonte-corpo);
     font-size: var(--tamanho-corpo);
 }
-.campo-admin-linha { display: flex; gap: 12px; }
-.campo-admin-linha .campo-admin { flex: 1; }
+.campo-admin input::placeholder, .campo-admin textarea::placeholder {
+    color: var(--cor-cinza-tinta);
+    opacity: 0.55;
+    font-style: italic;
+}
+.campo-admin-linha { display: flex; flex-wrap: wrap; gap: 12px; }
+.campo-admin-linha .campo-admin { flex: 1; min-width: 140px; }
 .carrinho-item {
     display: flex;
     gap: var(--espaco-3);
@@ -469,7 +518,7 @@ textarea:focus-visible {
 
 .carrinho-item__nome {
     font-family: var(--fonte-display);
-    font-size: 1rem;
+    font-size: 1.1rem;
     margin-bottom: 4px;
 }
 
@@ -531,16 +580,20 @@ textarea:focus-visible {
 /* Toast de feedback (UC-05, passo 4) */
 .toast {
     position: fixed;
-    bottom: 24px;
+    top: 84px;
     left: 50%;
-    transform: translateX(-50%) translateY(12px);
+    transform: translateX(-50%) translateY(-12px);
     background: var(--cor-verde-ledger);
     color: var(--cor-papel);
-    padding: 12px 22px;
+    padding: 14px 26px;
     border-radius: 8px;
-    font-size: var(--tamanho-pequeno);
-    box-shadow: 0 4px 16px rgba(43,38,32,0.2);
-    z-index: 100;
+    font-size: var(--tamanho-corpo);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(43,38,32,0.25);
+    z-index: 200;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease, transform 0.25s ease;

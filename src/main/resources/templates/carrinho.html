@@ -7,7 +7,7 @@
 </head>
 <body>
 <main layout:fragment="content">
-    <section class="container" style="padding: var(--espaco-6) 0; max-width: 720px;">
+    <section class="container" style="padding-top: var(--espaco-6); padding-bottom: var(--espaco-6); max-width: 720px;">
 
         <h1>Seu Carrinho</h1>
         <div class="regua-ledger regua-ledger--estreita"></div>
@@ -29,6 +29,7 @@
                     <div class="etiqueta" style="margin-bottom:6px;">Calcular frete</div>
                     <div style="display:flex; gap:8px;">
                         <input type="text" id="input-cep" placeholder="00000-000" maxlength="9"
+                               oninput="handleCepDigitado()"
                                style="flex:1; height:34px; padding:0 10px; border:1px solid var(--cor-borda); border-radius: var(--raio-botao); font-family: var(--fonte-utilitaria);">
                         <button type="button" class="botao botao-secundario" id="botao-calcular-frete" onclick="handleCalcularFrete()">Calcular</button>
                     </div>
@@ -61,6 +62,17 @@
         let freteEscolhido = null; // {servico, transportadora, preco, prazoDias}
         let freteCalculadoEm = null; // RN-17: validade de 30 minutos
         let ultimasOpcoesFrete = [];
+        let timeoutCep = null;
+
+        // Melhora a experiência: calcula sozinho assim que o CEP tiver 8 dígitos,
+        // sem obrigar o clique em "Calcular". O botão continua ali para recalcular.
+        function handleCepDigitado() {
+            clearTimeout(timeoutCep);
+            const digitos = document.getElementById('input-cep').value.replace(/\D/g, '');
+            if (digitos.length === 8) {
+                timeoutCep = setTimeout(() => handleCalcularFrete(), 400);
+            }
+        }
 
         // UC-07: calcula opções de frete via /api/frete/calcular
         async function handleCalcularFrete() {

@@ -15,10 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * CRUD de produtos do painel admin (UC-14).
- *
- * TODO (M8): proteger este controller com Spring Security exigindo
- * ROLE_ADMIN — hoje está liberado via SecurityConfig#permitAll para
- * permitir o desenvolvimento do M3/M4 sem travar em login.
+ * Protegido por ROLE_ADMIN via SecurityConfig (rota /admin/**, desde o M8).
  */
 @RestController
 @RequestMapping("/admin/api/produtos")

@@ -7,7 +7,7 @@
 </head>
 <body>
 <main layout:fragment="content">
-    <section class="container" style="padding: var(--espaco-6) 0; max-width: 640px;">
+    <section class="container" style="padding-top: var(--espaco-6); padding-bottom: var(--espaco-6); max-width: 640px;">
 
         <h1>Finalizar Compra</h1>
         <div class="regua-ledger regua-ledger--estreita"></div>
@@ -28,12 +28,12 @@
                     <label class="etiqueta">Nome completo</label><br>
                     <input type="text" id="campo-nome" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
                 </div>
-                <div style="display:flex; gap:12px; margin-bottom:20px;">
-                    <div style="flex:1;">
+                <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+                    <div style="flex:1 1 200px;">
                         <label class="etiqueta">E-mail</label><br>
                         <input type="email" id="campo-email" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
                     </div>
-                    <div style="flex:1;">
+                    <div style="flex:1 1 160px;">
                         <label class="etiqueta">Telefone</label><br>
                         <input type="text" id="campo-telefone" placeholder="(00) 00000-0000" required
                                oninput="handleFormatarTelefone(this)"
@@ -42,36 +42,36 @@
                 </div>
 
                 <h3>Endereço de entrega</h3>
-                <div style="display:flex; gap:12px; margin-bottom:12px;">
-                    <div style="width:140px;">
+                <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                    <div style="flex:1 1 130px;">
                         <label class="etiqueta">CEP</label><br>
                         <input type="text" id="campo-cep" required onblur="handleBuscarCep()" style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-utilitaria);">
                     </div>
-                    <div style="flex:1;">
+                    <div style="flex:2 1 220px;">
                         <label class="etiqueta">Rua</label><br>
                         <input type="text" id="campo-rua" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
                     </div>
                 </div>
-                <div style="display:flex; gap:12px; margin-bottom:12px;">
-                    <div style="width:120px;">
+                <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+                    <div style="flex:1 1 100px;">
                         <label class="etiqueta">Número</label><br>
                         <input type="text" id="campo-numero" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
                     </div>
-                    <div style="flex:1;">
+                    <div style="flex:3 1 200px;">
                         <label class="etiqueta">Complemento (opcional)</label><br>
                         <input type="text" id="campo-complemento" style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
                     </div>
                 </div>
-                <div style="display:flex; gap:12px; margin-bottom:20px;">
-                    <div style="flex:1;">
+                <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+                    <div style="flex:2 1 140px;">
                         <label class="etiqueta">Bairro</label><br>
                         <input type="text" id="campo-bairro" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
                     </div>
-                    <div style="flex:1;">
+                    <div style="flex:2 1 140px;">
                         <label class="etiqueta">Cidade</label><br>
                         <input type="text" id="campo-cidade" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo);">
                     </div>
-                    <div style="width:70px;">
+                    <div style="flex:0 1 70px;">
                         <label class="etiqueta">UF</label><br>
                         <input type="text" id="campo-uf" maxlength="2" required style="width:100%; height:36px; padding:0 10px; border:1px solid var(--cor-borda); border-radius:var(--raio-botao); font-family:var(--fonte-corpo); text-transform:uppercase;">
                     </div>
@@ -136,6 +136,7 @@
             }
 
             document.getElementById('campo-cep').value = freteCheckout.cep;
+            handleBuscarCep(); // preenche rua/bairro/cidade/uf sem esperar o usuário digitar de novo
             renderizarResumo();
             document.getElementById('conteudo-checkout').hidden = false;
         }

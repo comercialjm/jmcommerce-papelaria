@@ -6,7 +6,7 @@
     <title>Configurações</title>
 </head>
 <body>
-<main layout:fragment="content" style="max-width:560px;">
+<main layout:fragment="content" class="container" style="max-width:560px; padding-top: var(--espaco-6); padding-bottom: var(--espaco-6);">
 
     <h1>Configurações da loja</h1>
     <div class="regua-ledger regua-ledger--estreita"></div>
@@ -42,7 +42,7 @@
             <label>Imagem</label>
             <div style="display:flex; align-items:center; gap:12px;">
                 <div id="preview-banner" style="display:none; position:relative; width:96px; height:56px;">
-                    <img id="preview-banner-tag" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
+                    <img id="preview-banner-tag" alt="Pré-visualização do banner" style="width:100%; height:100%; object-fit:cover; border-radius:6px; border:1px solid var(--cor-borda);">
                     <button type="button" onclick="handleRemoverBanner()"
                             style="position:absolute; top:-6px; right:-6px; background:var(--cor-selo-vinho); color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:10px; line-height:1;">&times;</button>
                 </div>
