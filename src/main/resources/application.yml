@@ -7,6 +7,21 @@ spring:
     multipart:
       max-file-size: 5MB  # RN-03: máx 5MB por imagem
       max-request-size: 10MB
+  web:
+    resources:
+      # RT-11: cache agressivo + cache-busting por hash de conteúdo. Cada arquivo
+      # estático ganha uma URL com hash (ex: base-a1b2c3d4.css) que só muda quando
+      # o CONTEÚDO muda — assim dá pra cachear "para sempre" sem risco de servir
+      # uma versão desatualizada depois de um novo deploy.
+      cache:
+        cachecontrol:
+          max-age: 365d
+        add-last-modified: true
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
   jpa:
     open-in-view: false
     hibernate:
