@@ -4,6 +4,7 @@ import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Formulario;
 import com.jmcodestudio.papelaria.entity.Categoria;
 import com.jmcodestudio.papelaria.entity.Produto;
 import com.jmcodestudio.papelaria.exception.RecursoNaoEncontradoException;
+import com.jmcodestudio.papelaria.repository.CategoriaRepository;
 import com.jmcodestudio.papelaria.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,19 +18,23 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProdutoServiceTest {
 
     private ProdutoRepository produtoRepository;
     private CategoriaService categoriaService;
+    private CategoriaRepository categoriaRepository;
     private ProdutoService produtoService;
 
     @BeforeEach
     void setUp() {
         produtoRepository = Mockito.mock(ProdutoRepository.class);
         categoriaService = Mockito.mock(CategoriaService.class);
-        produtoService = new ProdutoService(produtoRepository, categoriaService);
+        categoriaRepository = Mockito.mock(CategoriaRepository.class);
+        produtoService = new ProdutoService(produtoRepository, categoriaService, categoriaRepository);
     }
 
     @Test
@@ -102,5 +107,19 @@ class ProdutoServiceTest {
 
         assertThatThrownBy(() -> produtoService.buscarDetalhePublico(99L))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
+    }
+
+    @Test
+    void listarCatalogo_deveIncluirProdutosDaSubcategoria_aoFiltrarPelaCategoriaPai() {
+        Categoria espiral = new Categoria();
+        espiral.setId(20L);
+
+        when(categoriaRepository.findByParentId(10L)).thenReturn(List.of(espiral));
+        when(produtoRepository.findByAtivoTrueAndCategoriaIdIn(eq(List.of(10L, 20L)), any()))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+
+        produtoService.listarCatalogo(10L, org.springframework.data.domain.PageRequest.of(0, 12));
+
+        verify(produtoRepository).findByAtivoTrueAndCategoriaIdIn(List.of(10L, 20L), org.springframework.data.domain.PageRequest.of(0, 12));
     }
 }

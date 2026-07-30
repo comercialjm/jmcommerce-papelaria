@@ -8,12 +8,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     // Catálogo público (UC-02): apenas produtos ativos
     Page<Produto> findByAtivoTrue(Pageable pageable);
 
     Page<Produto> findByAtivoTrueAndCategoriaId(Long categoriaId, Pageable pageable);
+
+    // UC-02, RN-38: filtro do catálogo — inclui produtos da categoria E de suas subcategorias
+    Page<Produto> findByAtivoTrueAndCategoriaIdIn(List<Long> categoriaIds, Pageable pageable);
 
     // Home (UC-01): produtos em destaque = mais recentes ativos
     Page<Produto> findByAtivoTrueOrderByCriadoEmDesc(Pageable pageable);

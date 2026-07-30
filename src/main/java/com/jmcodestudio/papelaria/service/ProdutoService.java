@@ -7,6 +7,7 @@ import com.jmcodestudio.papelaria.dto.ProdutoDTOs.Resumo;
 import com.jmcodestudio.papelaria.entity.Produto;
 import com.jmcodestudio.papelaria.entity.ProdutoImagem;
 import com.jmcodestudio.papelaria.exception.RecursoNaoEncontradoException;
+import com.jmcodestudio.papelaria.repository.CategoriaRepository;
 import com.jmcodestudio.papelaria.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,13 +27,24 @@ public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
     private final CategoriaService categoriaService;
+    private final CategoriaRepository categoriaRepository;
 
-    /** UC-02: catálogo público, só produtos ativos. */
+    /** UC-02: catálogo público, só produtos ativos. RN-38: filtrar por uma
+     * categoria de nível 1 também traz produtos das suas subcategorias, já que
+     * a navegação pública trata a hierarquia como transparente. */
     @Transactional(readOnly = true)
     public Page<Resumo> listarCatalogo(Long categoriaId, Pageable pageable) {
-        Page<Produto> pagina = (categoriaId != null)
-                ? produtoRepository.findByAtivoTrueAndCategoriaId(categoriaId, pageable)
-                : produtoRepository.findByAtivoTrue(pageable);
+        Page<Produto> pagina;
+
+        if (categoriaId != null) {
+            List<Long> idsCategorias = new ArrayList<>();
+            idsCategorias.add(categoriaId);
+            categoriaRepository.findByParentId(categoriaId).forEach(sub -> idsCategorias.add(sub.getId()));
+            pagina = produtoRepository.findByAtivoTrueAndCategoriaIdIn(idsCategorias, pageable);
+        } else {
+            pagina = produtoRepository.findByAtivoTrue(pageable);
+        }
+
         return pagina.map(this::paraResumo);
     }
 
